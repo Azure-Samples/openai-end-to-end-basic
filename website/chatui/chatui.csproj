@@ -6,7 +6,6 @@
     <UserSecretsId>d0529c9d-ec8e-4d01-82c6-dfdf6a1bcb74</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.8" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
   <ItemGroup>

@@ -39,7 +39,12 @@ Follow these instructions to deploy this example to your Azure subscription, try
 
 The following steps are required to deploy the infrastructure from the command line.
 
-1. In your shell, navigate to the root directory of this repository.
+1. In your shell, clone this repo and navigate to the root directory of this repository.
+
+   ```bash
+   git clone https://github.com/Azure-Samples/openai-end-to-end-basic
+   cd openai-end-to-end-basic
+   ```
 
 1. Login and set subscription
 
@@ -68,6 +73,8 @@ The following steps are required to deploy the infrastructure from the command l
      -p @./infra-as-code/bicep/parameters.json \
      -p baseName=$BASE_NAME
    ```
+1. Assign your account the `Cognitive Services OpenAI Contributor` role on the OpenAI instance.  This is required to interact with the OpenAI service via the Machine Learning Workspace.
+
 
 ### 2. Create, test, and deploy a Prompt flow
 

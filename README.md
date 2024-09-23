@@ -24,9 +24,9 @@ The implementation covers the following scenarios:
 
 The Azure Machine Learning deployment architecture diagram illustrates how a front-end web application connects to a managed online endpoint.
 
-## Deploy
+## Deployment guide
 
-The following are prerequisites.
+Follow these instructions to deploy this example to your Azure subscription, try out what you've deployed, and learn how to clean up those resources.
 
 ### Prerequisites
 
@@ -34,8 +34,6 @@ The following are prerequisites.
 - Your user has permissions to assign [Azure roles](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles), such as a User Access Administrator or Owner.
 - The [Azure CLI installed](https://learn.microsoft.com/cli/azure/install-azure-cli)
 - The [az Bicep tools installed](https://learn.microsoft.com/azure/azure-resource-manager/bicep/install)
-
-Use the following to deploy the infrastructure.
 
 ### 1. :rocket: Deploy the infrastructure
 
@@ -57,8 +55,7 @@ The following steps are required to deploy the infrastructure from the command l
    - The BASE_NAME contains only lowercase letters and is between 6 and 8 characters. Most resource names will include this text.
    - You choose a valid resource group name.
 
-
-```bash
+   ```bash
    LOCATION=eastus
    BASE_NAME=<base-resource-name (between 6 and 8 lowercase characters)>
 
@@ -101,10 +98,10 @@ The following steps are required to deploy the infrastructure from the command l
     1. Click 'Save' to save your changes
 
 1. Test the flow
-   - Click 'Start compute session' (This may take around 5 minutes)
-   - Click 'Chat' on the UI
-   - Enter a question
-   - A response to your question should appear on the UI
+   1. Click 'Start compute session' (This may take around 5 minutes)
+   1. Click 'Chat' on the UI
+   1. Enter a question
+   1. A response to your question should appear on the UI
 
 ### 3. Deploy to Azure Machine Learning managed online endpoint
 
@@ -127,7 +124,7 @@ az webapp deploy --resource-group $RESOURCE_GROUP --name $APPSERVICE_NAME --type
 ```
 
 
-#### 5. :checkered_flag: Try it out. Test the deployed application.
+## :checkered_flag: Try it out. Test the deployed application.
 
 After the deployment is complete, you can try the deployed application by navigating to the AppService URL in a web browser.  Once you're there, ask your solution a question, ideally one that involves recent data or events, something that would only be known by the RAG process including content from Wikipedia.
 

@@ -16,7 +16,7 @@ The reference implementation illustrates a basic example of a chat application. 
 The implementation covers the following scenarios:
 
 1. Authoring a flow - Authoring a flow using Prompt flow in an Azure Machine Learning workspace.
-1. Deploying a flow - The client UI is hosted in Azure App Service and accesses the OpenAI service via a Machine Learning managed online endpoint.
+1. Deploying a flow - The client UI is hosted in Azure App Service and accesses the Azure OpenAI Service via a Machine Learning managed online endpoint.
 
 ### Deploying a flow to Azure Machine Learning managed online endpoint
 

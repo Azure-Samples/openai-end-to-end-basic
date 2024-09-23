@@ -6,23 +6,12 @@ param location string = resourceGroup().location
 
 // existing resource name params 
 param logWorkspaceName string
-param keyVaultName string
 
 //variables
 var openaiName = 'oai-${baseName}'
 
 resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = {
   name: logWorkspaceName
-}
-
-resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' existing = {
-  name: keyVaultName
-  resource kvsGatewayPublicCert 'secrets' = {
-    name: 'openai-key'
-    properties: {
-      value: openAiAccount.listKeys().key1
-    }
-  }
 }
 
 resource openAiAccount 'Microsoft.CognitiveServices/accounts@2023-10-01-preview' = {

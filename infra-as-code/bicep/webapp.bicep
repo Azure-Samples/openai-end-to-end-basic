@@ -22,7 +22,6 @@ var chatApiKey = '@Microsoft.KeyVault(SecretUri=https://${keyVaultName}.vault.az
 var chatApiEndpoint = 'https://ept-${baseName}.${location}.inference.ml.azure.com/score'
 var chatInputName = 'question'
 var chatOutputName = 'answer'
-var openAIApiKey = '@Microsoft.KeyVault(SecretUri=https://${keyVaultName}.vault.azure.net/secrets/openai-key)'
 var appServicePlanStandardSku = 'Standard'
 var appServicePlanSettings = {
   Standard: {

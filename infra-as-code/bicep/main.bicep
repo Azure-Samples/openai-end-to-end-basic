@@ -65,14 +65,13 @@ module appInsightsModule 'applicationinsights.bicep' = {
   }
 }
 
-// Deploy Azure OpenAI service with private endpoint and private DNS zone
+// Deploy Azure OpenAI service
 module openaiModule 'openai.bicep' = {
   name: 'openaiDeploy'
   params: {
     location: location
     baseName: baseName
     logWorkspaceName: logWorkspace.name
-    keyVaultName: keyVaultModule.outputs.keyVaultName
   }
 }
 

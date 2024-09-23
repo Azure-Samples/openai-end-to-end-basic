@@ -412,7 +412,7 @@ resource managedEndpointPrimaryKeyEntry 'Microsoft.KeyVault/vaults/secrets@2023-
   parent: keyVault
   name: 'chatApiKey'
   properties: {
-    value: machineLearning::onlineEndpoint.listKeys().primaryKey
+    value: machineLearning::onlineEndpoint.listKeys().primaryKey // In a production system, use Azure RBAC instead of pre-shared secrets
     contentType: 'text/plain'
     attributes: {
       enabled: true

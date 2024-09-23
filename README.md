@@ -72,12 +72,12 @@ The following steps are required to deploy the infrastructure from the command l
      -g $RESOURCE_GROUP \
      -p baseName=$BASE_NAME
    ```
-1. Assign your account the `Cognitive Services OpenAI Contributor` role on the Azure OpenAI instance.  This is required to interact with the Azure OpenAI Service via the Machine Learning Workspace.
 
+1. Assign your account the `Cognitive Services OpenAI Contributor` role on the Azure OpenAI instance.  This is required to interact with the Azure OpenAI Service via the Machine Learning Workspace.
 
 ### 2. Create, test, and deploy a Prompt flow
 
-1. Open the [Machine Learning Workspace](https://ml.azure.com/) and choose your workspace. Ensure you have [enabled Prompt flow in your Azure Machine Learning workspace](https://learn.microsoft.com/azure/machine-learning/prompt-flow/get-started-prompt-flow?view=azureml-api-2#prerequisites-enable-prompt-flow-in-your-azure-machine-learning-workspace).
+1. Open the [Machine Learning Workspace](https://ml.azure.com/) and choose your workspace. Ensure you have [enabled Prompt flow in your Azure Machine Learning workspace](https://learn.microsoft.com/azure/machine-learning/prompt-flow/get-started-prompt-flow#prerequisites-enable-prompt-flow-in-your-azure-machine-learning-workspace).
 
 1. Create a prompt flow connection to your gpt35 Azure OpenAI deployment. This will be used by the prompt flow you clone in the next step.
     1. Click on 'Connections' in the left navigation in Machine Learning Studio

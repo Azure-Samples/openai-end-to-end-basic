@@ -73,7 +73,7 @@ The following steps are required to deploy the infrastructure from the command l
      -p @./infra-as-code/bicep/parameters.json \
      -p baseName=$BASE_NAME
    ```
-1. Assign your account the `Cognitive Services OpenAI Contributor` role on the OpenAI instance.  This is required to interact with the OpenAI service via the Machine Learning Workspace.
+1. Assign your account the `Cognitive Services OpenAI Contributor` role on the Azure OpenAI instance.  This is required to interact with the Azure OpenAI Service via the Machine Learning Workspace.
 
 
 ### 2. Create, test, and deploy a Prompt flow
@@ -84,7 +84,7 @@ The following steps are required to deploy the infrastructure from the command l
     1. Click on 'Connections' in the left navigation in Machine Learning Studio
     1. Click the 'Create' button
     1. Click 'Azure OpenAI Service'
-    1. Your OpenAI instance should be displayed.  Change the Authentication method to 'Microsoft Entra ID'
+    1. Your Azure OpenAI instance should be displayed.  Change the Authentication method to 'Microsoft Entra ID'
     1. Click the 'Add connection' button
    
 1. Clone an existing prompt flow
@@ -95,11 +95,11 @@ The following steps are required to deploy the infrastructure from the command l
 
 1. Connect the Prompt flow to your Azure OpenAI instance
     1. For extract_query_from_question:
-       1. For 'Connection,' select your OpenAI instance from the dropdown menu
+       1. For 'Connection,' select your Azure OpenAI instance from the dropdown menu
        1. For 'deployment_name', select 'gpt35' from the dropdown menu
        1. For 'response_format', select '{"type":"text"}' from the dropdown menu
     1. For augmented_chat:
-       1. For 'Connection,' select your OpenAI instance from the dropdown menu
+       1. For 'Connection,' select your Azure OpenAI instance from the dropdown menu
        1. For 'deployment_name', select 'gpt35' from the dropdown menu
        1. For 'response_format', select '{"type":"text"}' from the dropdown menu
     1. Click 'Save' to save your changes

@@ -41,7 +41,7 @@ Use the following to deploy the infrastructure.
 
 The following steps are required to deploy the infrastructure from the command line.
 
-1. In your bash shell (or VSCode session) with Azure CLI and Bicep installed, navigate to the root directory of this repository.
+1. In your shell, navigate to the root directory of this repository.
 
 1. Login and set subscription
 

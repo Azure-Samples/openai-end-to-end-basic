@@ -86,7 +86,7 @@ The following steps are required to deploy the infrastructure from the command l
     1. Click 'Clone' under 'Chat with Wikipedia'
     1. Name it 'chat_wiki' and Press 'Clone'
 
-1. Connect the Prompt flow to your OpenAI instance
+1. Connect the Prompt flow to your Azure OpenAI instance
     1. For extract_query_from_question:
        1. For 'Connection,' select your OpenAI instance from the dropdown menu
        1. For 'deployment_name', select 'gpt35' from the dropdown menu

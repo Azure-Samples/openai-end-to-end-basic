@@ -70,7 +70,6 @@ The following steps are required to deploy the infrastructure from the command l
    # This takes about 10 minutes to run.
    az deployment group create -f ./infra-as-code/bicep/main.bicep \
      -g $RESOURCE_GROUP \
-     -p @./infra-as-code/bicep/parameters.json \
      -p baseName=$BASE_NAME
    ```
 1. Assign your account the `Cognitive Services OpenAI Contributor` role on the Azure OpenAI instance.  This is required to interact with the Azure OpenAI Service via the Machine Learning Workspace.

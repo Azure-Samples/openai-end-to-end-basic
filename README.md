@@ -73,7 +73,7 @@ The following steps are required to deploy the infrastructure from the command l
      -p baseName=$BASE_NAME
    ```
 
-1. Assign your account the `Cognitive Services OpenAI Contributor` role on the Azure OpenAI instance.  This is required to interact with the Azure OpenAI Service via the Machine Learning Workspace.
+1. Assign your account the `Cognitive Services OpenAI User` role on the Azure OpenAI instance.  This is required to interact with the Azure OpenAI Service via the Machine Learning Workspace.
 
 ### 2. Create, test, and deploy a Prompt flow
 

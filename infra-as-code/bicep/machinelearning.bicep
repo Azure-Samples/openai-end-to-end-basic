@@ -52,11 +52,12 @@ resource storageBlobDataReaderRole 'Microsoft.Authorization/roleDefinitions@2022
   scope: subscription()
 }
 
+/*
 @description('Built-in Role: [Cognitive Services OpenAI User](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#cognitive-services-openai-user)')
 resource cognitiveServicesOpenAiUserRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
   name: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
   scope: subscription()
-}
+}*/
 
 @description('Built-in Role: [Storage Blob Data Contributor](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#storage-blob-data-contributor)')
 resource storageBlobDataContributorRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
@@ -93,14 +94,27 @@ resource keyVaultAdministratorRole 'Microsoft.Authorization/roleDefinitions@2022
   name: '00482a5a-887f-4fb3-b363-3b7fe8e74483'
   scope: subscription()
 }
-
+/*
 @description('Built-in Role: [Azure Machine Learning Workspace Connection Secrets Reader](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles)')
 resource machineLearningConnectionSecretsReaderRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
   name: 'ea01e6af-a1c1-4350-9563-ad00f8c72ec5'
   scope: subscription()
-}
+}*/
 
 // ---- New Resources ----
+
+@description('User managed identity that represents the AI Hub workspace.')
+resource aiHubManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+  name: 'id-aihub'
+  location: location
+}
+
+/*
+@description('User managed identity that represents the AI Hub chat project.')
+resource aiHubChatProjectManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+  name: 'id-aihub-chatproject'
+  location: location
+}
 
 @description('User managed identity that represents the Azure Machine Learning workspace.')
 resource azureMachineLearningWorkspaceManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
@@ -118,13 +132,14 @@ resource azureMachineLearningOnlineEndpointManagedIdentity 'Microsoft.ManagedIde
 resource azureMachineLearningInstanceComputeManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: 'id-amlinstancecompute'
   location: location
-}
+}*/
 
 // ---- Azure Machine Learning Workspace role assignments ----
 // Source: https://learn.microsoft.com/azure/machine-learning/how-to-identity-based-service-authentication#user-assigned-managed-identity
 
 // AMLW -> Resource Group (control plane for all resources)
 
+/*
 @description('Assign AML Workspace\'s ID: Contributor to parent resource group.')
 resource workspaceContributorToResourceGroupRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: resourceGroup()
@@ -134,10 +149,36 @@ resource workspaceContributorToResourceGroupRoleAssignment 'Microsoft.Authorizat
     principalType: 'ServicePrincipal'
     principalId: azureMachineLearningWorkspaceManagedIdentity.properties.principalId
   }
+}*/
+
+// Azure AI Hub's managed identity needs to be set as a contributor on a resource group. This resource group is used when users
+// are interacting with the portal to add new projects.
+@description('Assign AI Hub\'s ID: Contributor to parent resource group. This is used when projects are created in the future (through the portal) to drop project resources into the resource group')
+resource aiHubContributorToResourceGroupRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: resourceGroup()
+  name: guid(resourceGroup().id, aiHubManagedIdentity.name, contributorRole.id)
+  properties: {
+    roleDefinitionId: contributorRole.id
+    principalType: 'ServicePrincipal'
+    principalId: aiHubManagedIdentity.properties.principalId
+  }
 }
+
+@description('Assign AML Workspace\'s ID: Storage Blob Data Contributor to workload\'s storage account.')
+resource storageBlobDataContributorHubRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: mlStorage
+  name: guid(mlStorage.id, aiHubManagedIdentity.name, storageBlobDataContributorRole.id)
+  properties: {
+    roleDefinitionId: storageBlobDataContributorRole.id
+    principalType: 'ServicePrincipal'
+    principalId: aiHubManagedIdentity.properties.principalId
+  }
+}
+
 
 // AMLW ->Give Endpoint identity access to read workspace connection secrets
 
+/*
 @description('Assign AML Workspace Azure Machine Learning Workspace Connection Secrets Reader to the endpoint managed identity.')
 resource onlineEndpointSecretsReaderRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: machineLearning
@@ -148,11 +189,11 @@ resource onlineEndpointSecretsReaderRoleAssignment 'Microsoft.Authorization/role
     principalType: 'ServicePrincipal'
     principalId: azureMachineLearningOnlineEndpointManagedIdentity.properties.principalId
   }
-}
+}*/
 
 
 // AMLW -> ML Storage data plane (blobs and files)
-
+/*
 @description('Assign AML Workspace\'s ID: Storage Blob Data Contributor to workload\'s storage account.')
 resource storageBlobDataContributorRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: mlStorage
@@ -163,6 +204,7 @@ resource storageBlobDataContributorRoleAssignment 'Microsoft.Authorization/roleA
     principalId: azureMachineLearningWorkspaceManagedIdentity.properties.principalId
   }
 }
+
 
 @description('Assign AML Workspace\'s ID: Storage File Data Privileged Contributor to workload\'s storage account.')
 resource storageFileDataContributorRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
@@ -225,10 +267,11 @@ resource onlineEndpointBlobDataReaderRoleAssignment 'Microsoft.Authorization/rol
     principalId: azureMachineLearningOnlineEndpointManagedIdentity.properties.principalId
   }
 }
+  */
 
 // ---- Azure Machine Learning Workspace compute instance role assignments ----
 // Source: https://learn.microsoft.com/azure/machine-learning/how-to-identity-based-service-authentication#pull-docker-base-image-to-machine-learning-compute-cluster-for-training-as-is
-
+/*
 @description('Assign AML Workspace\'s Managed Online Endpoint: Cognitive Services OpenAI User to OpenAI service.')
 resource cognitiveServicesOpenAiUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: openAiAccount
@@ -260,10 +303,196 @@ resource computeInstanceBlobDataReaderRoleAssignment 'Microsoft.Authorization/ro
     principalType: 'ServicePrincipal'
     principalId: azureMachineLearningInstanceComputeManagedIdentity.properties.principalId
   }
+}*/
+
+// ---- Azure AI hub (studio) resources ----
+/*
+@description('Azure AI Service service agreggation point.')
+resource azureAIServices 'Microsoft.CognitiveServices/accounts@2024-06-01-preview' = {
+  name: 'aischat'
+  location: location
+  kind: 'AIServices'
+  sku: {
+    name: 'S0'
+  }
+  properties: {
+    disableLocalAuth: true
+    raiMonitorConfig: null
+    apiProperties: {}
+    restrictOutboundNetworkAccess: false
+    networkAcls: {
+      defaultAction: 'Allow'
+      ipRules: []
+      bypass: 'None'
+      virtualNetworkRules: []
+    }
+    dynamicThrottlingEnabled: false
+    allowedFqdnList: []
+    restore: false
+    customSubDomainName: 'ck0002'
+    amlWorkspace: null
+    publicNetworkAccess: 'Enabled'
+  }
+}
+
+
+@description('Azure Diagnostics: Machine Learning Workspace - audit')
+resource aiServiceDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: 'default'
+  scope: aiServices
+  properties: {
+    workspaceId: logWorkspace.id
+    logs: [
+      {
+        categoryGroup: 'allLogs'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+    ]
+  }
+}
+  */
+
+@description('A hub provides the hosting environment for this AI workload. It provides security, governance controls, and shared configurations.')
+resource aiHub 'Microsoft.MachineLearningServices/workspaces@2024-07-01-preview' = {
+  name: 'aih-${baseName}'
+  location: location
+  kind: 'Hub'
+  sku: {
+    name: 'Basic'
+    tier: 'Basic'
+  }
+  identity: {
+    type: 'SystemAssigned'
+  }
+  properties: {
+    friendlyName: 'Azure OpenAI Chat Hub'
+    description: 'Hub to support the Microsoft Learn Azure OpenAI basic chat implementation. https://learn.microsoft.com/azure/architecture/ai-ml/architecture/basic-openai-e2e-chat'
+    //primaryUserAssignedIdentity: aiHubManagedIdentity.id
+    publicNetworkAccess: 'Enabled'  // Production readiness change. The "Baseline" architecture adds ingress and egress network control over this "Basic" implementation.
+    ipAllowlist: []
+    serverlessComputeSettings: null
+    enableServiceSideCMKEncryption: false
+    managedNetwork: {
+      isolationMode: 'Disabled'  // Production readiness change. The "Baseline" architecture adds ingress and egress network control over this "Basic" implementation.
+    }
+    allowRoleAssignmentOnRG: false // Do role assignments at the resource level.
+    v1LegacyMode: false
+    workspaceHubConfig: {
+      defaultWorkspaceResourceGroup: resourceGroup().id  // Setting this to the same resource group as the workspace
+    }
+
+    // Default settings for projects
+    storageAccount: mlStorage.id
+    containerRegistry: containerRegistry.id
+    systemDatastoresAuthMode: 'identity'
+    enableSoftwareBillOfMaterials: true
+    enableDataIsolation: true
+    keyVault: keyVault.id
+    applicationInsights: applicationInsights.id
+    hbiWorkspace: false
+    imageBuildCompute: null
+  }
+
+  resource aoaiConnection 'connections' = {
+    name: 'aoai'
+    properties: {
+      authType: 'AAD'
+      category: 'AzureOpenAI'
+      isSharedToAll: true
+      useWorkspaceManagedIdentity: true
+      peRequirement: 'NotRequired'
+      sharedUserList: []
+      metadata: {
+        ApiType: 'Azure'
+        ResourceId: openAiAccount.id
+      }
+      target: openAiAccount.properties.endpoint
+    }
+  }
+
+  /*resource aiServicesConnection 'connections' = {
+    name: 'aiservices'
+    properties: {
+      authType: 'AAD'
+      category: 'AIServices'
+      isSharedToAll: true
+      useWorkspaceManagedIdentity: true
+      peRequirement: 'NotRequired'
+      sharedUserList: []
+      metadata: {
+        ApiType: 'Azure'
+        ResourceId: aiServices.id
+      }
+      target: aiServices.properties.endpoint
+    }
+  }*/
+}
+
+@description('Azure Diagnostics: Machine Learning Workspace - audit')
+resource aiHubDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: 'default'
+  scope: aiHub
+  properties: {
+    workspaceId: logWorkspace.id
+    logs: [
+      {
+        categoryGroup: 'allLogs'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+    ]
+  }
+}
+
+// ---- Chat project ----
+ 
+@description('This is a container for the chat project.')
+resource chatProject 'Microsoft.MachineLearningServices/workspaces@2024-04-01' = {
+  name: 'aiproj-chat-${baseName}'
+  location: location
+  kind: 'Project'
+  sku: {
+    name: 'Basic'
+    tier: 'Basic'
+  }
+  identity: {
+    type: 'SystemAssigned'
+  }
+  properties: {
+    v1LegacyMode: false
+    publicNetworkAccess: 'Enabled'
+    hubResourceId: aiHub.id
+  }
+}
+
+@description('Azure Diagnostics: Machine Learning Workspace - audit')
+resource chatProjectDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: 'default'
+  scope: chatProject
+  properties: {
+    workspaceId: logWorkspace.id
+    logs: [
+      {
+        categoryGroup: 'allLogs'  // In production, this is probably excessive. Please tune to just the log streams that add value to your workload's operations.
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+    ]
+  }
 }
 
 // ---- Machine Learning Workspace assets ----
-
+/*
 @description('The Azure Machine Learning Workspace.')
 resource machineLearning 'Microsoft.MachineLearningServices/workspaces@2023-10-01' = {
   name: workspaceName
@@ -406,7 +635,8 @@ resource endpointDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-p
     ]
   }
 }
-
+*/
+/*
 @description('Key Vault Secret: The Managed Online Endpoint key to be referenced from the Chat UI app.')
 resource managedEndpointPrimaryKeyEntry 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
   parent: keyVault
@@ -420,4 +650,4 @@ resource managedEndpointPrimaryKeyEntry 'Microsoft.KeyVault/vaults/secrets@2023-
   }
 }
 
-output machineLearningId string = machineLearning.id
+output machineLearningId string = machineLearning.id*/

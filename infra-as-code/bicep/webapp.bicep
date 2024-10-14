@@ -65,7 +65,7 @@ module appServiceSecretsUserRoleAssignmentModule './modules/keyvaultRoleAssignme
 // App service plan
 resource appServicePlan 'Microsoft.Web/serverfarms@2022-09-01' = {
   name: appServicePlanName
-  location: location
+  location: 'eastus2'
   sku: appServicePlanSettings[appServicePlanStandardSku]
   properties: {
     zoneRedundant: false
@@ -77,7 +77,7 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2022-09-01' = {
 // Web App
 resource webApp 'Microsoft.Web/sites@2022-09-01' = {
   name: appName
-  location: location
+  location: 'eastus2'
   kind: 'app'
   identity: {
     type: 'UserAssigned'
@@ -167,6 +167,10 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
   properties: {
     Application_Type: 'web'
     WorkspaceResourceId: logWorkspace.id
+    RetentionInDays: 90
+    IngestionMode: 'LogAnalytics'
+    publicNetworkAccessForIngestion: 'Enabled'
+    publicNetworkAccessForQuery: 'Enabled'
   }
 }
 

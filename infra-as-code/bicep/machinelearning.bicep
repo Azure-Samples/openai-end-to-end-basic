@@ -15,6 +15,7 @@ param keyVaultName string
 param mlStorageAccountName string
 param logWorkspaceName string
 param openAiResourceName string
+param yourPrincipalId string
 
 // ---- Variables ----
 var workspaceName = 'mlw-${baseName}'
@@ -52,12 +53,12 @@ resource storageBlobDataReaderRole 'Microsoft.Authorization/roleDefinitions@2022
   scope: subscription()
 }
 
-/*
+
 @description('Built-in Role: [Cognitive Services OpenAI User](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#cognitive-services-openai-user)')
 resource cognitiveServicesOpenAiUserRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
   name: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
   scope: subscription()
-}*/
+}
 
 @description('Built-in Role: [Storage Blob Data Contributor](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#storage-blob-data-contributor)')
 resource storageBlobDataContributorRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
@@ -66,8 +67,26 @@ resource storageBlobDataContributorRole 'Microsoft.Authorization/roleDefinitions
 }
 
 @description('Built-in Role: [Storage File Data Privileged Contributor](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#storage-file-data-privileged-contributor)')
-resource storageFileDataContributor 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+resource storageFileDataContributorRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
   name: '69566ab7-960f-475b-8e7c-b3118f30c6bd'
+  scope: subscription()
+}
+
+@description('Built-in Role: [Storage Table Data Contributor](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles)')
+resource storageTableDataContributorRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  name: '0a9a7e1f-b9d0-4cc4-a60d-0319b160aaa3'
+  scope: subscription()
+}
+
+@description('Built-in Role: [Storage Account Contributor](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles)')
+resource storageAccountContributorRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  name: '17d1049b-9a84-46fb-8f53-869881c3d3ab'
+  scope: subscription()
+}
+
+@description('Built-in Role: [Reader](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles)')
+resource readerRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  name: 'acdd72a7-3385-48ef-bd42-f606fba81ae7'
   scope: subscription()
 }
 
@@ -80,6 +99,12 @@ resource containerRegistryPullRole 'Microsoft.Authorization/roleDefinitions@2022
 @description('Built-in Role: [AcrPush](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#acrpush)')
 resource containerRegistryPushRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
   name: '8311e382-0749-4cb8-b61a-304f252e45ec'
+  scope: subscription()
+}
+
+@description('Built-in Role: [Azure AI Administrator](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles)')
+resource azureAIAdministratorRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  name: 'b78c5d69-af96-48a3-bf8d-a8b4d589de94'
   scope: subscription()
 }
 
@@ -103,11 +128,13 @@ resource machineLearningConnectionSecretsReaderRole 'Microsoft.Authorization/rol
 
 // ---- New Resources ----
 
+/*
 @description('User managed identity that represents the AI Hub workspace.')
 resource aiHubManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: 'id-aihub'
   location: location
 }
+*/
 
 /*
 @description('User managed identity that represents the AI Hub chat project.')
@@ -151,29 +178,190 @@ resource workspaceContributorToResourceGroupRoleAssignment 'Microsoft.Authorizat
   }
 }*/
 
+// ---- Required permissions for AI Studio (Hub) ---- //
+
+// This architecture uses system managed identity for Azure AI Studio (Hub) and for Azure AI Studio projects.
+// Because of this, when those resources are deployed, the necessary role assignments are automatically created.
+// If you opt to use user-assigned managed identities, you will need to create the following role assignments on
+// with managed identities.
+
+// Azure AI Studio -> Contributor on parent resource group
+// Azure AI Studio -> AI Administrator on self
+// Azure AI Studio -> Storage Blob Data Contributor to the storage account
+// Azure AI Studio -> Storage File Data Privileged Contributor to the storage account
+// Azure AI Studio -> Key Vault Administrator to the Key Vault
+
+// Each project created needs its own identies assigned similarly
+
+// Azure AI Studio Project -> Reader to the storage account
+// Azure AI Studio Project -> Storage Account Contributor to the storage account
+// Azure AI Studio Project -> Storage Blob Data Contributor to the storage account
+// Azure AI Studio Project -> Storage File Data Privileged Contributor to the storage account
+// Azure AI Studio Project -> Storage Table Data Contributor to the storage account
+// Azure AI Studio Project -> Key Vault Administrator to the Key Vault
+// Azure AI Studio Project -> Contributor to the Container Registry
+// Azure AI Studio Project -> Contributor to Application Insights
+
+
+
+// The following permissions are granted to the Azure AI Studio (Hub) managed identity.
+
 // Azure AI Hub's managed identity needs to be set as a contributor on a resource group. This resource group is used when users
 // are interacting with the portal to add new projects.
-@description('Assign AI Hub\'s ID: Contributor to parent resource group. This is used when projects are created in the future (through the portal) to drop project resources into the resource group')
+/*   DO THESE GET AUTOMATICALLY CREATED!? 
+@description('Assign Azure AI Studio\'s Managed Identity: Contributor to parent resource group. This is used when projects are created in the future (through the portal) to drop project resources into the resource group')
 resource aiHubContributorToResourceGroupRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: resourceGroup()
-  name: guid(resourceGroup().id, aiHubManagedIdentity.name, contributorRole.id)
+  name: guid(resourceGroup().id, aiHub.id, contributorRole.id)
   properties: {
     roleDefinitionId: contributorRole.id
     principalType: 'ServicePrincipal'
-    principalId: aiHubManagedIdentity.properties.principalId
+    principalId: aiHub.identity.principalId
   }
 }
 
-@description('Assign AML Workspace\'s ID: Storage Blob Data Contributor to workload\'s storage account.')
+@description('Assign Azure AI Studio\'s Managed Identity: AI Administorator to self.')
+resource aiHubAzureAIAdministratorToSelfRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: aiHub
+  name: guid(resourceGroup().id, aiHub.id, contributorRole.id)
+  properties: {
+    roleDefinitionId: azureAIAdministratorRole.id
+    principalType: 'ServicePrincipal'
+    principalId: aiHub.identity.principalId
+  }
+}
+
+@description('Assign Azure AI Studio\'s Managed Identity: Storage Blob Data Contributor to the studio\'s storage account.')
 resource storageBlobDataContributorHubRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: mlStorage
-  name: guid(mlStorage.id, aiHubManagedIdentity.name, storageBlobDataContributorRole.id)
+  name: guid(mlStorage.id, aiHub.id, storageBlobDataContributorRole.id)
   properties: {
     roleDefinitionId: storageBlobDataContributorRole.id
     principalType: 'ServicePrincipal'
-    principalId: aiHubManagedIdentity.properties.principalId
+    principalId: aiHub.identity.principalId
   }
 }
+
+@description('Assign Azure AI Studio\'s Managed Identity: Storage File Data Privileged Contributor to the studio\'s storage account.')
+resource storageFileDataContributorRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: mlStorage
+  name: guid(mlStorage.id, aiHub.id, storageFileDataContributorRole.id)
+  properties: {
+    roleDefinitionId: storageFileDataContributorRole.id
+    principalType: 'ServicePrincipal'
+    principalId: aiHub.identity.principalId
+  }
+}
+
+@description('Assign Azure AI Studio\'s Managed Identity: Key Vault Administrator to Key Vault instance.')
+resource keyVaultAdministratorForHubRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: keyVault
+  name: guid(keyVault.id, aiHub.id, keyVaultAdministratorRole.id)
+  properties: {
+    roleDefinitionId: keyVaultAdministratorRole.id
+    principalType: 'ServicePrincipal'
+    principalId: aiHub.identity.principalId
+  }
+}
+
+// ---- Required permissions for the AI Studio (Hub) chat project ---- //
+
+// The following permissions are granted to the managed identities for projects that are managed by the hub. If the project 
+// is created via the portal, this role assignments are automatically created.
+
+@description('Assign Azure AI Studio\'s chat project\'s identity: Key Vault Administrator to Key Vault instance.')
+resource keyVaultAdministratorForProjectRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: keyVault
+  name: guid(keyVault.id, chatProject.id, keyVaultAdministratorRole.id)
+  properties: {
+    roleDefinitionId: keyVaultAdministratorRole.id
+    principalType: 'ServicePrincipal'
+    principalId: chatProject.identity.principalId
+  }
+}
+
+@description('Assign Azure AI Studio\'s chat project\'s identity: Reader to the studio\'s storage account.')
+resource readerForProjectRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: mlStorage
+  name: guid(mlStorage.id, chatProject.id, readerRole.id)
+  properties: {
+    roleDefinitionId: readerRole.id
+    principalType: 'ServicePrincipal'
+    principalId: chatProject.identity.principalId
+  }
+}
+
+@description('Assign Azure AI Studio\'s chat project\'s identity: Storage Account Contributor to the studio\'s storage account.')
+resource storageAccountContributorForProjectRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: mlStorage
+  name: guid(mlStorage.id, chatProject.id, storageAccountContributorRole.id)
+  properties: {
+    roleDefinitionId: storageAccountContributorRole.id
+    principalType: 'ServicePrincipal'
+    principalId: chatProject.identity.principalId
+  }
+}
+
+@description('Assign Azure AI Studio\'s chat project\'s identity: Storage Blob Data Contributor to the studio\'s storage account.')
+resource storageBlobDataContributorForProjectRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: mlStorage
+  name: guid(mlStorage.id, chatProject.id, storageBlobDataContributorRole.id)
+  properties: {
+    roleDefinitionId: storageBlobDataContributorRole.id
+    principalType: 'ServicePrincipal'
+    principalId: chatProject.identity.principalId
+  }
+}
+
+@description('Assign Azure AI Studio\'s chat project\'s identity: Storage File Data Privileged Contributor to the studio\'s storage account.')
+resource storageFileDataContributorForProjectRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: mlStorage
+  name: guid(mlStorage.id, chatProject.id, storageFileDataContributorRole.id)
+  properties: {
+    roleDefinitionId: storageFileDataContributorRole.id
+    principalType: 'ServicePrincipal'
+    principalId: chatProject.identity.principalId
+  }
+}
+
+@description('Assign Azure AI Studio\'s chat project\'s identity: Storage Table Data Contributor to the studio\'s storage account.')
+resource storageTableDataContributorForProjectRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: mlStorage
+  name: guid(mlStorage.id, chatProject.id, storageTableDataContributorRole.id)
+  properties: {
+    roleDefinitionId: storageTableDataContributorRole.id
+    principalType: 'ServicePrincipal'
+    principalId: chatProject.identity.principalId
+  }
+}
+
+@description('Assign Azure AI Studio\'s chat project\'s identity: Contributor to the studio\'s container registry.')
+resource containerRegistryContributorForProjectRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: containerRegistry
+  name: guid(mlStorage.id, chatProject.id, contributorRole.id)
+  properties: {
+    roleDefinitionId: contributorRole.id
+    principalType: 'ServicePrincipal'
+    principalId: chatProject.identity.principalId
+  }
+}
+
+@description('Assign Azure AI Studio\'s chat project\'s identity: Contributor to the studio\'s application insights instance.')
+resource applicationInsightsContributorForProjectRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: applicationInsights
+  name: guid(mlStorage.id, chatProject.id, contributorRole.id)
+  properties: {
+    roleDefinitionId: contributorRole.id
+    principalType: 'ServicePrincipal'
+    principalId: chatProject.identity.principalId
+  }
+}
+
+AUTOMATIC TEST */
+
+// TODO: Resource Group: ME: Azure AI Inference Deployment Operator
+
+
 
 
 // AMLW ->Give Endpoint identity access to read workspace connection secrets
@@ -216,20 +404,13 @@ resource storageFileDataContributorRoleAssignment 'Microsoft.Authorization/roleA
     principalId: azureMachineLearningWorkspaceManagedIdentity.properties.principalId
   }
 }
+*/
 
-// AMLW -> Key Vault data plane (secrets)
+// Azure AI Studio -> Key Vault data plane (secrets)
 
-@description('Assign AML Workspace\'s ID: Key Vault Administrator to Key Vault instance.')
-resource keyVaultAdministratorRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  scope: keyVault
-  name: guid(keyVault.id, azureMachineLearningWorkspaceManagedIdentity.name, keyVaultAdministratorRole.id)
-  properties: {
-    roleDefinitionId: keyVaultAdministratorRole.id
-    principalType: 'ServicePrincipal'
-    principalId: azureMachineLearningWorkspaceManagedIdentity.properties.principalId
-  }
-}
 
+
+/*
 // AMLW -> Azure Container Registry data plane (push and pull)
 
 @description('Assign AML Workspace\'s ID: AcrPush to workload\'s container registry.')
@@ -356,6 +537,32 @@ resource aiServiceDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01
 }
   */
 
+// Any users that need to access Prompt flow files, need the ability to manage files in the file share. Ideally they would only have access to
+// the file shares that are related to their projects.
+@description('Assign your user the ability to manage files in storage. This is needed to use the Prompt flow editor in Azure AI Studio.')
+resource storageFileDataContributorForUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: mlStorage
+  name: guid(mlStorage.id, yourPrincipalId, storageFileDataContributorRole.id)
+  properties: {
+    roleDefinitionId: storageFileDataContributorRole.id
+    principalType: 'User'
+    principalId: yourPrincipalId
+  }
+}
+
+@description('Assign your user the ability to manage files in storage. This is needed to execute the Prompt flow from within in Azure AI Studio.')
+resource cognitiveServicesOpenAiUserForUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: mlStorage
+  name: guid(mlStorage.id, yourPrincipalId, cognitiveServicesOpenAiUserRole.id)
+  properties: {
+    roleDefinitionId: cognitiveServicesOpenAiUserRole.id
+    principalType: 'User'
+    principalId: yourPrincipalId
+  }
+}
+
+// TODO: Evaluate if AI Services should be a resource we add to this architecture
+
 @description('A hub provides the hosting environment for this AI workload. It provides security, governance controls, and shared configurations.')
 resource aiHub 'Microsoft.MachineLearningServices/workspaces@2024-07-01-preview' = {
   name: 'aih-${baseName}'
@@ -366,12 +573,11 @@ resource aiHub 'Microsoft.MachineLearningServices/workspaces@2024-07-01-preview'
     tier: 'Basic'
   }
   identity: {
-    type: 'SystemAssigned'
+    type: 'SystemAssigned'  // This resource's identity is assigned priviledge access to ACR, Storage, Key Vault, and Application Insights.
   }
   properties: {
     friendlyName: 'Azure OpenAI Chat Hub'
     description: 'Hub to support the Microsoft Learn Azure OpenAI basic chat implementation. https://learn.microsoft.com/azure/architecture/ai-ml/architecture/basic-openai-e2e-chat'
-    //primaryUserAssignedIdentity: aiHubManagedIdentity.id
     publicNetworkAccess: 'Enabled'  // Production readiness change. The "Baseline" architecture adds ingress and egress network control over this "Basic" implementation.
     ipAllowlist: []
     serverlessComputeSettings: null
@@ -463,7 +669,7 @@ resource chatProject 'Microsoft.MachineLearningServices/workspaces@2024-04-01' =
     tier: 'Basic'
   }
   identity: {
-    type: 'SystemAssigned'
+    type: 'SystemAssigned'  // This resource's identity is assigned priviledge access to ACR, Storage, Key Vault, and Application Insights.
   }
   properties: {
     v1LegacyMode: false

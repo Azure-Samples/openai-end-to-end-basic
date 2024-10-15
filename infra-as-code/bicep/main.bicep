@@ -6,6 +6,11 @@ param location string = resourceGroup().location
 @maxLength(8)
 param baseName string
 
+@description('Your principal ID. Used for a few role assignments.')
+@minLength(36)
+@maxLength(36)
+param yourPrincipalId string
+
 // @description('Optional. When true will deploy a cost-optimised environment for development purposes. Note that when this param is true, the deployment is not suitable or recommended for Production environments. Default = false.')
 // param developmentEnvironment bool = false
 
@@ -93,6 +98,7 @@ module mlwModule 'machinelearning.bicep' = {
     keyVaultName: keyVaultModule.outputs.keyVaultName
     mlStorageAccountName: storageModule.outputs.mlDeployStorageName
     containerRegistryName: 'cr${baseName}'
+    yourPrincipalId: yourPrincipalId
     logWorkspaceName: logWorkspace.name
     openAiResourceName: openaiModule.outputs.openAiResourceName
   }

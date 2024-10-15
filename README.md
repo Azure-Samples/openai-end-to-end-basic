@@ -80,49 +80,56 @@ The following steps are required to deploy the infrastructure from the command l
    az deployment group create -f ./infra-as-code/bicep/main.bicep \
      -g $RESOURCE_GROUP \
      -p baseName=${BASE_NAME}
+     -p yourPrincipalId=TODO
    ```
 
-1. Assign your account the `Cognitive Services OpenAI User` role on the Azure OpenAI instance. This is required to interact with the Azure OpenAI Service via the Machine Learning Workspace.
+1. TODO: Assign your account the `Cognitive Services OpenAI User` role on the Azure OpenAI instance. This is required to interact with the Azure OpenAI Service via the Machine Learning Workspace.
 
-### 2. Create, test, and deploy a Prompt flow
+### 2. Deploy a Prompt flow
 
-1. Open the [Machine Learning Workspace](https://ml.azure.com/) and choose your workspace. Ensure you have [enabled Prompt flow in your Azure Machine Learning workspace](https://learn.microsoft.com/azure/machine-learning/prompt-flow/get-started-prompt-flow#prerequisites-enable-prompt-flow-in-your-azure-machine-learning-workspace).
+To test this architecture, you'll be deploying a pre-built Prompt flow. The prompt flow is "Chat with Wikipedia."
 
-1. Create a prompt flow connection to your gpt35 Azure OpenAI deployment. This will be used by the prompt flow you clone in the next step.
-   1. Click on 'Connections' in the left navigation in Machine Learning Studio
-   1. Click the 'Create' button
-   1. Click 'Azure OpenAI Service'
-   1. Your Azure OpenAI instance should be displayed.  Change the Authentication method to 'Microsoft Entra ID'
-   1. Click the 'Add connection' button
+1. Open Azure AI Studio's projects by going to <https://ai.azure.com/allProjects>.
 
-1. Clone an existing prompt flow
-   1. Click on 'Prompt flow' in the left navigation in Machine Learning Studio
-   1. Click on the 'Flows' tab and click 'Create'
-   1. Click 'Clone' under 'Chat with Wikipedia'
-   1. Name it 'chat_wiki' and Press 'Clone'
+1. Click on the `aiproj-chat-${BASE_NAME}` project. This is the project where you'll deploy your prompt flow.
 
-1. Connect the Prompt flow to your Azure OpenAI instance
+1. Click on **Prompt flow** in the left navigation.
 
-   1. For extract_query_from_question:
-      1. For 'Connection,' select your Azure OpenAI instance from the dropdown menu
-      1. For 'deployment_name', select 'gpt35' from the dropdown menu
-      1. For 'response_format', select '{"type":"text"}' from the dropdown menu
+1. On the **Flows** tab, click **+ Create**.
 
-   1. For augmented_chat:
-      1. For 'Connection,' select your Azure OpenAI instance from the dropdown menu
-      1. For 'deployment_name', select 'gpt35' from the dropdown menu
-      1. For 'response_format', select '{"type":"text"}' from the dropdown menu
+1. Under Explore gallery, find "Chat with Wikipedia" and click **Clone**.
 
-   1. Click 'Save' to save your changes
+1. Set the Folder name to `chat_wiki` and click **Clone**.
 
-1. Test the flow
+   This copies a starter Prompt flow template into your Azure Files storage account. This action is performed by the managed identity of the project. After the files are copied, then you're directed to a Prompt flow editor. That editor experience uses your own identity for access to Azure Files.
 
-   1. Click 'Start compute session' (This may take around 5 minutes)
-   1. Click 'Chat' on the UI
-   1. Enter a question
-   1. A response to your question should appear on the UI
+1. Connect the the `extract_query_from_question` Prompt flow step to your Azure OpenAI model deployment.
 
-### 3. Deploy to Azure Machine Learning managed online endpoint
+      - For **Connection**, select 'aoai' from the dropdown menu. This is your deployed Azure OpenAI instance.
+      - For **deployment_name**, select 'gpt35' from the dropdown menu. This is the model you've deployed in that Azure OpenAI instance.
+      - For **response_format**, select '{"type":"text"}' from the dropdown menu
+
+1. Connect the the `augmented_chat` Prompt flow step to your Azure OpenAI model deployment.
+
+      - For **Connection**, select the same 'aoai' from the dropdown menu.
+      - For **deployment_name**, select the same 'gpt35' from the dropdown menu.
+      - For **response_format**, also select '{"type":"text"}' from the dropdown menu.
+
+1. Click **Save**.
+
+### 3. Test the Prompt flow out in Azure AI Studio
+
+1. Click **Start compute session**.
+
+1. Wait for that button to change to 'Compute session running.' This may take around five minutes.
+
+1. Click the **Chat** button on the UI.
+
+1. Enter a question that would be something best grounded through recent Wikipedia content.
+
+1. A response to your question should appear on the UI.
+
+### 4. Deploy to Azure Machine Learning managed online endpoint
 
 1. Create a deployment in the UI
 
@@ -132,7 +139,7 @@ The following steps are required to deploy the infrastructure from the command l
    1. Click 'Review + Create'
    1. Click 'Create'
 
-### 4. Publish the chat front-end web app
+### 5. Publish the chat front-end web app
 
 The baseline architecture uses [run from zip file in App Service](https://learn.microsoft.com/azure/app-service/deploy-run-package). This approach has many benefits, including eliminating file lock conflicts when deploying.
 
@@ -142,13 +149,13 @@ APPSERVICE_NAME=app-$BASE_NAME
 az webapp deploy --resource-group $RESOURCE_GROUP --name $APPSERVICE_NAME --type zip --src-url https://raw.githubusercontent.com/Azure-Samples/openai-end-to-end-basic/main/website/chatui.zip
 ```
 
-## :checkered_flag: Try it out. Test the deployed application.
+## :checkered_flag: Try it out. Test the deployed application
 
 After the deployment is complete, you can try the deployed application by navigating to the AppService URL in a web browser.  Once you're there, ask your solution a question, ideally one that involves recent data or events, something that would only be known by the RAG process including content from Wikipedia.
 
 ## :broom: Clean up resources
 
-Most of the Azure resources deployed in the prior steps will incur ongoing charges unless removed. Also many of the resources deployed go into a soft delete status. It's best to purge those once you're done exploring.
+Most of the Azure resources deployed in the prior steps will incur ongoing charges unless removed. Also a few of the resources deployed go into a soft delete status. It's best to purge those once you're done exploring, Key Vault is given as an example here. Azure OpenAI and Azure Machine Learning Workspaces are others that should be purged.
 
 ```bash
 az group delete --name $RESOURCE_GROUP -y
@@ -157,7 +164,7 @@ az group delete --name $RESOURCE_GROUP -y
 az keyvault purge -n kv-${BASE_NAME}
 az openai purge -n oai-${BASE_NAME}  <-- TODO
 az aml purge -n amlw <-- TODO
-az ai hub purge -n aih-${BASE_NAME} <--- TODO
+az ai services purge -n aih-${BASE_NAME} <--- TODO
 Role assignment removals
 ```
 

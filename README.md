@@ -44,7 +44,7 @@ Follow these instructions to deploy this example to your Azure subscription, try
 
 - Your user has permissions to assign [Azure roles](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles), such as a User Access Administrator or Owner.
 
-- The [Azure CLI installed](https://learn.microsoft.com/cli/azure/install-azure-cli), with the [`ml` extension](/azure/machine-learning/how-to-configure-cli#installation).
+- The [Azure CLI installed](https://learn.microsoft.com/cli/azure/install-azure-cli)
 
 - The [az Bicep tools installed](https://learn.microsoft.com/azure/azure-resource-manager/bicep/install)
 

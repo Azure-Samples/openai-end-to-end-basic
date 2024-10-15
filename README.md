@@ -7,7 +7,7 @@ The implementation takes advantage of [Prompt flow](https://microsoft.github.io/
 - Creating prompts
 - Querying data stores for grounding data
 - Python code
-- Calling language models (such as ChatGPT)
+- Calling language models (such as GPT models)
 
 The reference implementation illustrates a basic example of a chat application. For a reference implementation that implements enterprise requirements, please see the [OpenAI end-to-end baseline reference implementation](https://github.com/Azure-Samples/openai-end-to-end-baseline).
 

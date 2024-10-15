@@ -7,7 +7,7 @@ The implementation takes advantage of [Prompt flow](https://microsoft.github.io/
 - Creating prompts
 - Querying data stores for grounding data
 - Python code
-- Calling language models (such as ChatGPT)
+- Calling language models (such as GPT models)
 
 The reference implementation illustrates a basic example of a chat application. For a reference implementation that implements enterprise requirements, please see the [OpenAI end-to-end baseline reference implementation](https://github.com/Azure-Samples/openai-end-to-end-baseline).
 
@@ -83,8 +83,6 @@ The following steps are required to deploy the infrastructure from the command l
      -p yourPrincipalId=TODO
    ```
 
-1. TODO: Assign your account the `Cognitive Services OpenAI User` role on the Azure OpenAI instance. This is required to interact with the Azure OpenAI Service via the Machine Learning Workspace.
-
 ### 2. Deploy a Prompt flow
 
 To test this architecture, you'll be deploying a pre-built Prompt flow. The prompt flow is "Chat with Wikipedia."
@@ -149,7 +147,7 @@ APPSERVICE_NAME=app-$BASE_NAME
 az webapp deploy --resource-group $RESOURCE_GROUP --name $APPSERVICE_NAME --type zip --src-url https://raw.githubusercontent.com/Azure-Samples/openai-end-to-end-basic/main/website/chatui.zip
 ```
 
-## :checkered_flag: Try it out. Test the deployed application
+## :checkered_flag: Try it out. Test the deployed application.
 
 After the deployment is complete, you can try the deployed application by navigating to the AppService URL in a web browser.  Once you're there, ask your solution a question, ideally one that involves recent data or events, something that would only be known by the RAG process including content from Wikipedia.
 

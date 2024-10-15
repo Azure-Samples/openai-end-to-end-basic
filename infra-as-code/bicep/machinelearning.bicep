@@ -151,23 +151,23 @@ resource storageFileDataContributorForUserRoleAssignment 'Microsoft.Authorizatio
   }
 }
 
-@description('Assign your user the ability to invoke models in Azure OpenAI. This is needed to execute the Prompt flow from within in Azure AI Studio.')
-resource cognitiveServicesOpenAiUserForUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  scope: mlStorage
-  name: guid(mlStorage.id, yourPrincipalId, cognitiveServicesOpenAiUserRole.id)
-  properties: {
-    roleDefinitionId: cognitiveServicesOpenAiUserRole.id
-    principalType: 'User'
-    principalId: yourPrincipalId
-  }
-}
-
 @description('Assign your user the ability to manage Prompt flow state files from blob storage. This is needed to execute the Prompt flow from within in Azure AI Studio.')
 resource blobStorageContributorForUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: mlStorage
   name: guid(mlStorage.id, yourPrincipalId, storageBlobDataContributorRole.id)
   properties: {
     roleDefinitionId: storageBlobDataContributorRole.id
+    principalType: 'User'
+    principalId: yourPrincipalId
+  }
+}
+
+@description('Assign your user the ability to invoke models in Azure OpenAI. This is needed to execute the Prompt flow from within in Azure AI Studio.')
+resource cognitiveServicesOpenAiUserForUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: aiHub
+  name: guid(mlStorage.id, yourPrincipalId, cognitiveServicesOpenAiUserRole.id)
+  properties: {
+    roleDefinitionId: cognitiveServicesOpenAiUserRole.id
     principalType: 'User'
     principalId: yourPrincipalId
   }

@@ -76,13 +76,13 @@ The following steps are required to deploy the infrastructure from the command l
    RESOURCE_GROUP=rg-chat-basic-${LOCATION}
    az group create -l $LOCATION -n $RESOURCE_GROUP
 
-   PRINCIPALID=$(az ad signed-in-user show --query id --output tsv)
+   PRINCIPAL_ID=$(az ad signed-in-user show --query id --output tsv)
 
    # This takes about 10 minutes to run.
    az deployment group create -f ./infra-as-code/bicep/main.bicep \
      -g $RESOURCE_GROUP \
      -p baseName=${BASE_NAME}
-     -p yourPrincipalId=$PRINCIPALID
+     -p yourPrincipalId=$PRINCIPAL_ID
    ```
 
 ### 2. Deploy a Prompt flow

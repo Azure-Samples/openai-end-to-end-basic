@@ -285,7 +285,7 @@ resource chatProject 'Microsoft.MachineLearningServices/workspaces@2024-04-01' =
     description: 'Project to contain the "Chat with wikipedia" example Prompt flow that is used as part of the Microsoft Learn Azure OpenAI basic chat implementation. https://learn.microsoft.com/azure/architecture/ai-ml/architecture/basic-openai-e2e-chat'
     v1LegacyMode: false
     publicNetworkAccess: 'Enabled'
-    hubResourceId: aiHub.id    
+    hubResourceId: aiHub.id
   }
 }
 

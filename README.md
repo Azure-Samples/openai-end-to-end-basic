@@ -81,7 +81,7 @@ The following steps are required to deploy the infrastructure from the command l
    # This takes about 10 minutes to run.
    az deployment group create -f ./infra-as-code/bicep/main.bicep \
      -g $RESOURCE_GROUP \
-     -p baseName=${BASE_NAME}
+     -p baseName=${BASE_NAME} \
      -p yourPrincipalId=$PRINCIPAL_ID
    ```
 
@@ -121,7 +121,7 @@ To test this architecture, you'll be deploying a pre-built Prompt flow. The prom
 
 1. Click **Start compute session**.
 
-1. Wait for that button to change to 'Compute session running.' This may take around five minutes.
+1. Wait for that button to change to *Compute session running*. This may take around five minutes.
 
 1. Click the **Chat** button on the UI.
 

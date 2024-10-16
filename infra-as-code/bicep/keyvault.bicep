@@ -8,7 +8,6 @@ param baseName string
 @description('The resource group location')
 param location string = resourceGroup().location
 
-param apiKey string
 param logWorkspaceName string
 
 //variables
@@ -60,14 +59,6 @@ resource keyVaultDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-
         }
     ]
     logAnalyticsDestinationType: null
-  }
-}
-
-resource apiKeySecret 'Microsoft.KeyVault/vaults/secrets@2023-02-01' = {
-  parent: keyVault
-  name: 'apiKey'
-  properties: {
-    value: apiKey
   }
 }
 

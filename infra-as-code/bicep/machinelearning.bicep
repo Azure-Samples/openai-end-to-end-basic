@@ -1,5 +1,5 @@
 /*
-  Deploy machine learning workspace, private endpoints and compute resources
+  Deploy Azure AI Studio hub, projects, and a managed online endpoint
 */
 
 @description('This is the base name for each Azure resource name (6-8 chars)')
@@ -313,6 +313,9 @@ resource chatProject 'Microsoft.MachineLearningServices/workspaces@2024-04-01' =
       authMode: 'Key' // Ideally this should be based on Microsoft Entra ID access. This sample however uses a key stored in Key Vault.
       publicNetworkAccess: 'Enabled' // This sample uses identity as the perimeter. Production scenarios should layer in network perimeter control as well.
     }
+
+    // TODO: Noticed that traffic goes back to 0% if this is template redeployed after the Prompt flow
+    // deplopyment is complete. How can we stop that?
   }
 
   // NOTE: Change over baseline, Prompt Flow in the portal an simply use serverless compute for the Azure AI Studio prompt flow testing, don't pre-provision compute for that.
@@ -377,5 +380,21 @@ resource chatProjectEndpointDiagSettings 'Microsoft.Insights/diagnosticSettings@
         }
       }
     ]
+  }
+}
+
+// Production readiness: Client applications that run from compute on Azure should use managed identities instead of
+// pre-shared keys. This sample implementation uses a pre-shared key, and should be rewritten to use the managed identity
+// provided by Azure Web Apps.
+@description('Key Vault Secret: The Managed Online Endpoint key to be referenced from the Chat UI app.')
+resource managedEndpointPrimaryKeyEntry 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  parent: keyVault
+  name: 'chatApiKey'
+  properties: {
+    value: chatProject::endpoint.listKeys().primaryKey // This key is technically already in Key Vault, but it's name is not something that is easy to reference.
+    contentType: 'text/plain'
+    attributes: {
+      enabled: true
+    }
   }
 }

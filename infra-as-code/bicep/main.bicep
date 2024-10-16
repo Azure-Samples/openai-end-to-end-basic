@@ -11,10 +11,6 @@ param baseName string
 @maxLength(36)
 param yourPrincipalId string
 
-// @description('Optional. When true will deploy a cost-optimised environment for development purposes. Note that when this param is true, the deployment is not suitable or recommended for Production environments. Default = false.')
-// param developmentEnvironment bool = false
-
-
 // ---- Log Analytics workspace ----
 resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
   name: 'log-${baseName}'
@@ -45,7 +41,6 @@ module keyVaultModule 'keyvault.bicep' = {
   params: {
     location: location
     baseName: baseName
-    apiKey: 'key'
     logWorkspaceName: logWorkspace.name
   }
 }
@@ -80,15 +75,7 @@ module openaiModule 'openai.bicep' = {
   }
 }
 
-// Deploy the gpt 3.5 model within the Azure OpenAI service deployed above.
-/* TODO module openaiModels 'openai-models.bicep' = {
-  name: 'openaiModelsDeploy'
-  params: {
-    openaiName: openaiModule.outputs.openAiResourceName
-  }
-}*/
-
-// Deploy Azure AI studio hub, projects, and managed online endpoints.
+// Deploy Azure AI Studio hub, projects, and managed online endpoints.
 module aiStudio 'machinelearning.bicep' = {
   name: 'aiStudio'
   params: {
@@ -104,7 +91,7 @@ module aiStudio 'machinelearning.bicep' = {
   }
 }
 
-// Deploy the web apps for the front end demo ui
+// Deploy the web apps for the front end demo UI
 module webappModule 'webapp.bicep' = {
   name: 'webappDeploy'
   params: {

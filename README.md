@@ -122,9 +122,9 @@ To test this architecture, you'll be deploying a pre-built Prompt flow. The Prom
    1. Open the **Files** view.
    1. Select 'requirements.txt'.
    1. The file should be empty, add one line containing just `promptflow-tracing>=1.16.1`.
-   1. Click **Save** and close the file.
+   1. Click **Save only** and close the file.
 
-1. Click **Save**.
+1. Click **Save** on the flow.
 
 ### 3. Test the Prompt flow from Azure AI Studio
 
@@ -136,7 +136,9 @@ Here you'll test your flow by invoking it directly from the Azure AI Studio. The
 
    If you get an error related to pip and dependency resolver, this is because of the temporary workaround you followed in the prior steps, this is safe to ignore.
 
-1. Click the **Chat** button on the UI.
+   *Do not advance until the serverless compute is running.*
+
+1. Click the enabled **Chat** button on the UI.
 
 1. Enter a question that would require grounding data through recent Wikipedia content, such as a notable current event.
 
@@ -169,7 +171,7 @@ Here you'll take your tested flow and deploy it to a managed online endpoint.
 
 1. :clock9: Wait for the deployment to finish creating.
 
-   The deployment can take  ten minutes to create. To check on the process, navigate to the **Deployments** screen using the link in the left navigation. Eventually 'ept-chat-deployment' will be on this list and then eventually it will be listed with a State of 'Succeeded'. Use the **Refresh** button as needed.
+   The deployment can take over ten minutes to create. To check on the process, navigate to the **Deployments** screen using the link in the left navigation. Eventually 'ept-chat-deployment' will be on this list and then eventually the deployment will be listed with a State of 'Succeeded'. Use the **Refresh** button as needed.
 
    *Do not advance until this deployment is complete.*
 
@@ -183,9 +185,7 @@ Here you'll take your tested flow and deploy it to a managed online endpoint.
 
 ### 6. Publish the chat front-end web app
 
-TODO: Stopped here.
-
-The baseline architecture uses [run from zip file in App Service](https://learn.microsoft.com/azure/app-service/deploy-run-package). This approach has many benefits, including eliminating file lock conflicts when deploying.
+Workloads build chat functionality into an application. Those interfaces usually call APIs which in turn call into Prompt flow. This implementation comes with such an interface. You'll deploy it to Azure App Service using its [run from package](https://learn.microsoft.com/azure/app-service/deploy-run-package) capabilities.
 
 ```bash
 APPSERVICE_NAME=app-$BASE_NAME
@@ -195,7 +195,15 @@ az webapp deploy --resource-group $RESOURCE_GROUP --name $APPSERVICE_NAME --type
 
 ## :checkered_flag: Try it out. Test the deployed application.
 
-After the deployment is complete, you can try the deployed application by navigating to the AppService URL in a web browser.  Once you're there, ask your solution a question, ideally one that involves recent data or events, something that would only be known by the RAG process including content from Wikipedia.
+After the deployment is complete, you can try the deployed application by navigating to the Web App's URL in a web browser. The URL is https:\//BASE_NAME.azurewebapps.net.
+
+You can also execute the following from your workstation. This command usually does not work from Azure Cloud Shell.
+
+```bash
+az webapp browse --resource-group $RESOURCE_GROUP --name $APPSERVICE_NAME
+```
+
+Once you're there, ask your solution a question. Like before, you question should ideally involve recent data or events, something that would only be known by the RAG process including content from Wikipedia.
 
 ## :broom: Clean up resources
 

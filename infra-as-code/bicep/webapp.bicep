@@ -1,5 +1,5 @@
 /*
-  Deploy a web app with a managed identity, diagnostics, and a private endpoint.
+  Deploy a web app with a managed identity and diagnostics
 */
 
 @description('This is the base name for each Azure resource name (6-8 chars)')
@@ -15,21 +15,6 @@ param logWorkspaceName string
 
 // variables
 var appName = 'app-${baseName}'
-var appServicePlanName = 'asp-${appName}${uniqueString(subscription().subscriptionId)}'
-var appServiceManagedIdentityName = 'id-${appName}'
-var appInsightsName = 'appinsights-${appName}'
-var chatApiKey = '@Microsoft.KeyVault(SecretUri=https://${keyVaultName}.vault.azure.net/secrets/chatApiKey)'
-var chatApiEndpoint = 'https://ept-${baseName}.${location}.inference.ml.azure.com/score'
-var chatInputName = 'question'
-var chatOutputName = 'answer'
-var appServicePlanStandardSku = 'Standard'
-var appServicePlanSettings = {
-  Standard: {
-    name: 'S1'
-    capacity: 1
-  }
-}
-
 
 // ---- Existing resources ----
 
@@ -43,12 +28,27 @@ resource keyVaultSecretsUserRole 'Microsoft.Authorization/roleDefinitions@2022-0
   scope: subscription()
 }
 
+resource chatProject 'Microsoft.MachineLearningServices/workspaces@2024-07-01-preview' existing = {
+  name: 'aiproj-chat'
+
+  resource scoreEndpoint 'onlineEndpoints' existing = {
+    name: 'ept-chat-${baseName}'
+  }
+}
+
+resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' existing = {
+  name: keyVaultName
+
+  resource chatApiKey 'secrets' existing = {
+    name: 'chatApiKey'
+  }
+}
 
 // ---- Web App resources ----
 
 // Managed Identity for App Service
 resource appServiceManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
-  name: appServiceManagedIdentityName
+  name: 'id-${appName}'
   location: location
 }
 
@@ -63,10 +63,13 @@ module appServiceSecretsUserRoleAssignmentModule './modules/keyvaultRoleAssignme
 }
 
 // App service plan
-resource appServicePlan 'Microsoft.Web/serverfarms@2022-09-01' = {
-  name: appServicePlanName
+resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
+  name: 'asp-${appName}${uniqueString(resourceGroup().id)}'
   location: 'eastus2'
-  sku: appServicePlanSettings[appServicePlanStandardSku]
+  sku: {
+    name: 'S1'
+    capacity: 1
+  }
   properties: {
     zoneRedundant: false
     reserved: true
@@ -75,7 +78,7 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2022-09-01' = {
 }
 
 // Web App
-resource webApp 'Microsoft.Web/sites@2022-09-01' = {
+resource webApp 'Microsoft.Web/sites@2023-12-01' = {
   name: appName
   location: 'eastus2'
   kind: 'app'
@@ -110,14 +113,13 @@ resource appsettings 'Microsoft.Web/sites/config@2022-09-01' = {
   name: 'appsettings'
   parent: webApp
   properties: {
-    WEBSITE_RUN_FROM_PACKAGE_BLOB_MI_RESOURCE_ID: appServiceManagedIdentity.id
     APPINSIGHTS_INSTRUMENTATIONKEY: appInsights.properties.InstrumentationKey
     APPLICATIONINSIGHTS_CONNECTION_STRING: appInsights.properties.ConnectionString
     ApplicationInsightsAgent_EXTENSION_VERSION: '~2'
-    chatApiKey: chatApiKey
-    chatApiEndpoint: chatApiEndpoint
-    chatInputName: chatInputName
-    chatOutputName: chatOutputName
+    chatApiKey: '@Microsoft.KeyVault(SecretUri=${keyVault::chatApiKey.properties.secretUri})'
+    chatApiEndpoint: chatProject::scoreEndpoint.properties.scoringUri
+    chatInputName: 'question'
+    chatOutputName: 'answer'
     keyVaultReferenceIdentity: appServiceManagedIdentity.id
   }
 }
@@ -161,7 +163,7 @@ resource webAppDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-pr
 
 // create application insights resource
 resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
-  name: appInsightsName
+  name: 'appinsights-${appName}'
   location: location
   kind: 'web'
   properties: {
@@ -173,9 +175,3 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
     publicNetworkAccessForQuery: 'Enabled'
   }
 }
-
-@description('The name of the app service plan.')
-output appServicePlanName string = appServicePlan.name
-
-@description('The name of the web app.')
-output appName string = webApp.name

@@ -12,8 +12,6 @@ param location string = resourceGroup().location
 @description('Provide a tier of your Azure Container Registry.')
 param acrSku string = 'Premium'
 
-// @description('Determines whether or not a private endpoint, DNS Zone, Zone Link and Zone Group is created for this resource.')
-
 // existing resource name params 
 param logWorkspaceName string
 
@@ -35,8 +33,11 @@ resource acrResource 'Microsoft.ContainerRegistry/registries@2023-01-01-preview'
   properties: {
     adminUserEnabled: false
     networkRuleSet: {
-      defaultAction: 'Deny'
+      defaultAction: 'Allow'
+      ipRules: []
     }
+    anonymousPullEnabled: false
+    networkRuleBypassOptions: 'None'
     publicNetworkAccess: 'Enabled'
     zoneRedundancy: 'Disabled'
   }

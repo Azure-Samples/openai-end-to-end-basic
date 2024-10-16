@@ -283,7 +283,7 @@ resource aiHubDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-pre
  
 @description('This is a container for the chat project.')
 resource chatProject 'Microsoft.MachineLearningServices/workspaces@2024-04-01' = {
-  name: 'aiproj-chat-${baseName}'
+  name: 'aiproj-chat'
   location: location
   kind: 'Project'
   sku: {
@@ -294,21 +294,22 @@ resource chatProject 'Microsoft.MachineLearningServices/workspaces@2024-04-01' =
     type: 'SystemAssigned'  // This resource's identity is automatically assigned priviledge access to ACR, Storage, Key Vault, and Application Insights.
   }
   properties: {
-    description: 'Project to contain the "Chat with wikipedia" example Prompt flow that is used as part of the Microsoft Learn Azure OpenAI basic chat implementation. https://learn.microsoft.com/azure/architecture/ai-ml/architecture/basic-openai-e2e-chat'
+    friendlyName: 'Chat with Wikipedia project'
+    description: 'Project to contain the "Chat with Wikipedia" example Prompt flow that is used as part of the Microsoft Learn Azure OpenAI basic chat implementation. https://learn.microsoft.com/azure/architecture/ai-ml/architecture/basic-openai-e2e-chat'
     v1LegacyMode: false
     publicNetworkAccess: 'Enabled'
     hubResourceId: aiHub.id
   }
 
   resource endpoint 'onlineEndpoints' = {
-    name: 'ept-chat'
+    name: 'ept-chat-${baseName}'
     location: location
     kind: 'Managed'
     identity: {
       type: 'SystemAssigned' // This resource's identity is automatically assigned AcrPull access to ACR, Storage Blob Data Contributor, and AML Metrics Writer on the project. It is also assigned two additional permissions below.
     }
     properties: {
-      description: 'This is the /score endpoint for the "Chat with wikipedia" example Prompt flow deployment. Called by the UI hosted in Web Apps.'
+      description: 'This is the /score endpoint for the "Chat with Wikipedia" example Prompt flow deployment. Called by the UI hosted in Web Apps.'
       authMode: 'Key' // Ideally this should be based on Microsoft Entra ID access. This sample however uses a key stored in Key Vault.
       publicNetworkAccess: 'Enabled' // This sample uses identity as the perimeter. Production scenarios should layer in network perimeter control as well.
     }
@@ -321,7 +322,7 @@ resource chatProject 'Microsoft.MachineLearningServices/workspaces@2024-04-01' =
 @description('Assign the online endpoint the ability to interact with the secrets of the parent project. This is needed to execute the Prompt flow from the managed endpoint.')
 resource projectSecretsReaderForOnlineEndpointRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: chatProject
-  name: guid(chatProject.id, yourPrincipalId, amlWorkspaceSecretsReaderRole.id)
+  name: guid(chatProject.id, chatProject::endpoint.id, amlWorkspaceSecretsReaderRole.id)
   properties: {
     roleDefinitionId: amlWorkspaceSecretsReaderRole.id
     principalType: 'ServicePrincipal'
@@ -332,7 +333,7 @@ resource projectSecretsReaderForOnlineEndpointRoleAssignment 'Microsoft.Authoriz
 @description('Assign the online endpoint the ability to invoke models in Azure OpenAI. This is needed to execute the Prompt flow from the managed endpoint.')
 resource projectOpenAIUserForOnlineEndpointRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: openAiAccount
-  name: guid(openAiAccount.id, yourPrincipalId, cognitiveServicesOpenAiUserRole.id)
+  name: guid(openAiAccount.id, chatProject::endpoint.id, cognitiveServicesOpenAiUserRole.id)
   properties: {
     roleDefinitionId: cognitiveServicesOpenAiUserRole.id
     principalType: 'ServicePrincipal'

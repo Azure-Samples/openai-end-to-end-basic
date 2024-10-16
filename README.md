@@ -87,11 +87,11 @@ The following steps are required to deploy the infrastructure from the command l
 
 ### 2. Deploy a Prompt flow from Azure AI Studio
 
-To test this architecture, you'll be deploying a pre-built Prompt flow. The prompt flow is "Chat with Wikipedia."
+To test this architecture, you'll be deploying a pre-built Prompt flow. The Prompt flow is "Chat with Wikipedia" which adds a Wikipedia search as grounding data.
 
 1. Open Azure AI Studio's projects by going to <https://ai.azure.com/allProjects>.
 
-1. Click on the `aiproj-chat-${BASE_NAME}` project. This is the project where you'll deploy your prompt flow.
+1. Click on the 'Chat with Wikipedia project' project name. This is the project where you'll deploy your flow.
 
 1. Click on **Prompt flow** in the left navigation.
 
@@ -117,22 +117,24 @@ To test this architecture, you'll be deploying a pre-built Prompt flow. The prom
 
 1. Work around a telemetry issue that results in an error at the point of inferencing.
 
-   At the time of this writing, there is a Prompt flow + OpenTelemetry related [bug](https://github.com/microsoft/promptflow/issues/3751) that manifests itself after the Prompt flow is deployed to a managed online endpoint. All requests to the `/score` endpoint result in `unsupported operand type(s) for +: 'NoneType' and 'NoneType'`. To correct that, perform the following steps.
+   At the time of this writing, there is a Prompt flow + OpenTelemetry related [bug](https://github.com/microsoft/promptflow/issues/3751) that manifests itself after the Prompt flow is deployed to a managed online endpoint. Proper requests to the `/score` endpoint result in an error response of `unsupported operand type(s) for +: 'NoneType' and 'NoneType'`. To correct that, perform the following steps.
 
    1. Open the **Files** view.
    1. Select 'requirements.txt'.
    1. The file should be empty, add one line containing just `promptflow-tracing>=1.16.1`.
-   1. Click *Save and install* and close the file.
+   1. Click **Save** and close the file.
 
 1. Click **Save**.
 
 ### 3. Test the Prompt flow from Azure AI Studio
 
-Here you'll test your flow by invoking it directly from the Azure AI Studio. The flow still requires you to bring compute to execute it from, but many of the interactions are actually performed by your identity. The bicep template has already granted your user data plane access to Azure OpenAI and the Azure Storage account for this purpose.
+Here you'll test your flow by invoking it directly from the Azure AI Studio. The flow still requires you to bring compute to execute it from. The compute you'll use when in the portal is the default *Serverless* offering, which is only used for portal-based Prompt flow experiences. The interactions against Azure OpenAI are performed by your identity; the bicep template has already granted your user data plane access.
 
 1. Click **Start compute session**.
 
 1. :clock8: Wait for that button to change to *Compute session running*. This may take about five minutes.
+
+   If you get an error related to pip and dependency resolver, this is because of the temporary workaround you followed in the prior steps, this is safe to ignore.
 
 1. Click the **Chat** button on the UI.
 
@@ -146,7 +148,7 @@ Here you'll take your tested flow and deploy it to a managed online endpoint.
 
 1. Click the **Deploy** button in the UI.
 
-1. Choose **Existing** endpoint and select the one called *ept-chat*. This was deployed in your IaC.
+1. Choose **Existing** endpoint and select the one called *ept-chat-BASE_NAME*.
 
 1. Set the following Basic settings, and click **Next**.
 
@@ -167,7 +169,9 @@ Here you'll take your tested flow and deploy it to a managed online endpoint.
 
 1. :clock9: Wait for the deployment to finish creating.
 
-   The deployment can take about eight minutes to create. To check on the process, navigate to the **Deployments** screen using the navigation on the left rail. Eventually, 'ept-chat-deployment' will be on this list with a State of 'Succeeded'.  Do not advance in these step until that is complete.
+   The deployment can take  ten minutes to create. To check on the process, navigate to the **Deployments** screen using the link in the left navigation. Eventually 'ept-chat-deployment' will be on this list and then eventually it will be listed with a State of 'Succeeded'. Use the **Refresh** button as needed.
+
+   *Do not advance until this deployment is complete.*
 
 ### 5. Test the deployed Prompt flow from Azure AI Studio
 
@@ -177,9 +181,9 @@ Here you'll take your tested flow and deploy it to a managed online endpoint.
 
 1. Verify the managed online endpoint is working by asking a similar question that you did from the Prompt flow screen.
 
-TODO: Stopped here.
-
 ### 6. Publish the chat front-end web app
+
+TODO: Stopped here.
 
 The baseline architecture uses [run from zip file in App Service](https://learn.microsoft.com/azure/app-service/deploy-run-package). This approach has many benefits, including eliminating file lock conflicts when deploying.
 

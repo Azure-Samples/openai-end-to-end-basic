@@ -126,6 +126,24 @@ resource openAiAccount 'Microsoft.CognitiveServices/accounts@2023-10-01-preview'
       ]
     }
   }
+
+  @description('Add a gpt-3.5 turbo deployment.')
+  resource gpt35 'deployments' = {
+    name: 'gpt35'
+    sku: {
+      name: 'Standard'
+      capacity: 25
+    }
+    properties: {
+      model: {
+        format: 'OpenAI'
+        name: 'gpt-35-turbo'
+        // TODO: version: '0613' // If your region doesn't support this version, please change it.
+      }
+      raiPolicyName: openAiAccount::blockingFilter.name
+      versionUpgradeOption: 'OnceNewDefaultVersionAvailable' // Production readiness: Always be explicit about model versions, use 'NoAutoUpgrade' to prevent version changes.
+    }
+  }
 }
 
 //OpenAI diagnostic settings

@@ -65,7 +65,7 @@ module appServiceSecretsUserRoleAssignmentModule './modules/keyvaultRoleAssignme
 // App service plan
 resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
   name: 'asp-${appName}${uniqueString(resourceGroup().id)}'
-  location: 'eastus2'
+  location: location
   sku: {
     name: 'S1'
     capacity: 1
@@ -80,7 +80,7 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
 // Web App
 resource webApp 'Microsoft.Web/sites@2023-12-01' = {
   name: appName
-  location: 'eastus2'
+  location: location
   kind: 'app'
   identity: {
     type: 'UserAssigned'

@@ -99,7 +99,7 @@ resource amlWorkspaceSecretsReaderRole 'Microsoft.Authorization/roleDefinitions@
 
 /*
 
-// TODO: Evaluate if AI Services should be a resource we add to this architecture
+// TODO: Evaluate if AI Services should be a resource we add to this architecture (Why, why not?)
 @description('Azure AI Service service agreggation point.')
 resource azureAIServices 'Microsoft.CognitiveServices/accounts@2024-06-01-preview' = {
   name: 'aischat'
@@ -316,6 +316,7 @@ resource chatProject 'Microsoft.MachineLearningServices/workspaces@2024-04-01' =
 
     // TODO: Noticed that traffic goes back to 0% if this is template redeployed after the Prompt flow
     // deplopyment is complete. How can we stop that?
+    // TODO: Verify that traffic goes to 100% on initial deploy (I think it does, but need to be sure)
   }
 
   // NOTE: Change over baseline, Prompt Flow in the portal an simply use serverless compute for the Azure AI Studio prompt flow testing, don't pre-provision compute for that.
@@ -386,6 +387,8 @@ resource chatProjectEndpointDiagSettings 'Microsoft.Insights/diagnosticSettings@
 // Production readiness: Client applications that run from compute on Azure should use managed identities instead of
 // pre-shared keys. This sample implementation uses a pre-shared key, and should be rewritten to use the managed identity
 // provided by Azure Web Apps.
+// TODO: Figure out if the key is something that's reliably predictable, if so, just use that instead of creating
+//       a copy of it.
 @description('Key Vault Secret: The Managed Online Endpoint key to be referenced from the Chat UI app.')
 resource managedEndpointPrimaryKeyEntry 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
   parent: keyVault

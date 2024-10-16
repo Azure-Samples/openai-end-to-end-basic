@@ -70,6 +70,7 @@ The following steps are required to deploy the infrastructure from the command l
 
    ```bash
    # Because this solution uses Azure AI Studio, the location MUST be one of: southcentralus, westeurope, southeastasia, japaneast to support all resources deployed
+   # TODO: Figure out what the real restrictions are here, if any. What should be the new default location?
    LOCATION=southcentralus
    BASE_NAME=<base resource name, between 6 and 8 lowercase characters, most resource names will include this text>
 

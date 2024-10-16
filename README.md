@@ -85,7 +85,7 @@ The following steps are required to deploy the infrastructure from the command l
      -p yourPrincipalId=$PRINCIPAL_ID
    ```
 
-### 2. Deploy a Prompt flow
+### 2. Deploy a Prompt flow from Azure AI Studio
 
 To test this architecture, you'll be deploying a pre-built Prompt flow. The prompt flow is "Chat with Wikipedia."
 
@@ -117,27 +117,52 @@ To test this architecture, you'll be deploying a pre-built Prompt flow. The prom
 
 1. Click **Save**.
 
-### 3. Test the Prompt flow out in Azure AI Studio
+### 3. Test the Prompt flow from Azure AI Studio
+
+Here you'll test your flow by invoking it directly from the Azure AI Studio. The flow still requires you to bring compute to execute it from, but many of the interactions are actually performed by your identity. The bicep template has already granted your user data plane access to Azure OpenAI and the Azure Storage account for this purpose.
 
 1. Click **Start compute session**.
 
-1. Wait for that button to change to *Compute session running*. This may take around five minutes.
+1. :clock8: Wait for that button to change to *Compute session running*. This may take about five minutes.
 
 1. Click the **Chat** button on the UI.
 
-1. Enter a question that would be something best grounded through recent Wikipedia content.
+1. Enter a question that would require grounding data through recent Wikipedia content, such as a notable current event.
 
-1. A response to your question should appear on the UI.
+1. A grounded response to your question should appear on the UI.
 
 ### 4. Deploy to Azure Machine Learning managed online endpoint
 
-1. Create a deployment in the UI
+Here you'll take your tested flow and deploy it to a managed online endpoint.
 
-   1. Click on 'Deploy' in the UI
-   1. Choose 'Existing' Endpoint and select the one called _ept-\<basename>_
-   1. Choose a small Virtual Machine size for testing and set the number of instances
-   1. Click 'Review + Create'
-   1. Click 'Create'
+1. Click the **Deploy** button in the UI.
+
+1. Choose **Existing** endpoint and select the one called *ept-chat*. This was deployed in your IaC.
+
+1. Set the following Basic settings, and click **Next**.
+
+   - **Deployment name**: ept-chat-deployment
+   - **Virtual machine**: Choose a small virtual machine size from which you have quota. 'Standard_D2as_v4' is plenty for this sample.
+   - **Instance count**: 3. This is the recommended minimum count.
+   - **Inferencing data collection**: Enabled
+
+1. Set the following Advanced settings, and click **Next**.
+
+   - **Deployment tags**: You can leave blank
+   - **Environment**: Use environment of current flow definition
+   - **Application Insights diagnostics**: Enabled
+
+1. Ensure the Output & connections settings are still set to the same connection name and deployment name as configured in the Prompt flow, and click **Next**.
+
+1. Click the **Create** button.
+
+1. :clock9: Wait for the deployment to finish creating.
+
+   The deployment can take about eight minutes to create. To check on the process, navigate to the **Deployments** screen using the navigation on the left rail. Eventually, 'ept-chat-deployment' will be on this list with a State of 'Succeeded'.  Do not advance in these step until that is complete.
+
+TODO: Stopped here.  There seems to be an issue. I get this from online 'test' endpoint and also from a local REST client.
+
+> Access denied to list workspace secret due to invalid authentication. Please ensure you have gain RBAC role 'Azure Machine Learning Workspace Connection Secrets Reader' for current workspace, and wait for a few minutes to make sure the new role takes effect.
 
 ### 5. Publish the chat front-end web app
 

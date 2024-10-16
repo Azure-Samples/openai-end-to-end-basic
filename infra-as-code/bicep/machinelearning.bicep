@@ -63,10 +63,10 @@ resource storageFileDataContributorRole 'Microsoft.Authorization/roleDefinitions
 
 // ---- Required permissions for AI Studio (Hub) ---- //
 
-// This architecture uses system managed identity for Azure AI Studio (Hub) and for Azure AI Studio projects.
-// Because of this, when those resources are deployed, the necessary role assignments are automatically created.
-// If you opt to use user-assigned managed identities, you will need to create the following role assignments on
-// with managed identities.
+// This architecture uses system managed identity for Azure AI Studio (Hub), Azure AI Studio projects, and for the managed
+// online endpoint. Because they are system managed identities, when those resources are deployed, the necessary role
+// assignments are automatically created. If you opt to use user-assigned managed identities, you will need to create the
+// following role assignments with the managed identities.
 
 // Azure AI Studio -> Contributor on parent resource group
 // Azure AI Studio -> AI Administrator on self
@@ -84,6 +84,12 @@ resource storageFileDataContributorRole 'Microsoft.Authorization/roleDefinitions
 // Azure AI Studio Project -> Key Vault Administrator to the Key Vault
 // Azure AI Studio Project -> Contributor to the Container Registry
 // Azure AI Studio Project -> Contributor to Application Insights
+
+// Each deployment under the project needs its own identities assigned as such
+// Endpoint -> AzureML Metrics Writer to the Azure AI Studio Project
+// Endpoint -> AzureML Machine Learning Workspace Connection Secrets Reader to the Azure AI Studio Project
+// Endpoint -> AcrPull to the Container Registry
+// Endpoint -> Storage Blob Data Contributor to the storage account
 
 /*
 
@@ -164,7 +170,7 @@ resource blobStorageContributorForUserRoleAssignment 'Microsoft.Authorization/ro
 
 @description('Assign your user the ability to invoke models in Azure OpenAI. This is needed to execute the Prompt flow from within in Azure AI Studio.')
 resource cognitiveServicesOpenAiUserForUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  scope: aiHub
+  scope: openAiAccount
   name: guid(mlStorage.id, yourPrincipalId, cognitiveServicesOpenAiUserRole.id)
   properties: {
     roleDefinitionId: cognitiveServicesOpenAiUserRole.id
@@ -183,7 +189,7 @@ resource aiHub 'Microsoft.MachineLearningServices/workspaces@2024-07-01-preview'
     tier: 'Basic'
   }
   identity: {
-    type: 'SystemAssigned'  // This resource's identity is assigned priviledge access to ACR, Storage, Key Vault, and Application Insights.
+    type: 'SystemAssigned'  // This resource's identity is automatically assigned priviledge access to ACR, Storage, Key Vault, and Application Insights.
   }
   properties: {
     friendlyName: 'Azure OpenAI Chat Hub'
@@ -195,7 +201,7 @@ resource aiHub 'Microsoft.MachineLearningServices/workspaces@2024-07-01-preview'
     managedNetwork: {
       isolationMode: 'Disabled'  // Production readiness change. The "Baseline" architecture adds ingress and egress network control over this "Basic" implementation.
     }
-    allowRoleAssignmentOnRG: false // Do role assignments at the resource level.
+    allowRoleAssignmentOnRG: false // Require role assignments at the resource level.
     v1LegacyMode: false
     workspaceHubConfig: {
       defaultWorkspaceResourceGroup: resourceGroup().id  // Setting this to the same resource group as the workspace
@@ -279,7 +285,7 @@ resource chatProject 'Microsoft.MachineLearningServices/workspaces@2024-04-01' =
     tier: 'Basic'
   }
   identity: {
-    type: 'SystemAssigned'  // This resource's identity is assigned priviledge access to ACR, Storage, Key Vault, and Application Insights.
+    type: 'SystemAssigned'  // This resource's identity is automatically assigned priviledge access to ACR, Storage, Key Vault, and Application Insights.
   }
   properties: {
     description: 'Project to contain the "Chat with wikipedia" example Prompt flow that is used as part of the Microsoft Learn Azure OpenAI basic chat implementation. https://learn.microsoft.com/azure/architecture/ai-ml/architecture/basic-openai-e2e-chat'
@@ -287,9 +293,26 @@ resource chatProject 'Microsoft.MachineLearningServices/workspaces@2024-04-01' =
     publicNetworkAccess: 'Enabled'
     hubResourceId: aiHub.id
   }
+
+  resource endpoint 'onlineEndpoints' = {
+    name: 'ept-chat'
+    location: location
+    kind: 'Managed'
+    identity: {
+      type: 'SystemAssigned' // This resource's identity is automatically assigned AcrPull access to ACR, Storage Blob Data Reader, and AML Metrics Writer on the project.
+    }
+    properties: {
+      description: 'This is the /score endpoint for the "Chat with wikipedia" example Prompt flow deployment. Called by the UI hosted in Web Apps.'
+      authMode: 'Key' // Ideally this should be based on Microsoft Entra ID access. This sample however uses a key stored in Key Vault.
+      publicNetworkAccess: 'Enabled' // This sample uses identity as the perimeter. Production scenarios should layer in network perimeter control as well.
+    }
+  }
+
+  // NOTE: Change over baseline, Prompt Flow in the portal an simply use serverless compute for the Azure AI Studio prompt flow testing, don't pre-provision compute for that.
+  // Meaniing we no longer have a 'computes' (ComputeInstance) here.  Tradeoff. The Serverless offering has limited flexibility and access, but requires no management.
 }
 
-@description('Azure Diagnostics: Machine Learning Workspace - audit')
+@description('Azure Diagnostics: AI Studio chat project - allLogs')
 resource chatProjectDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: 'default'
   scope: chatProject
@@ -298,6 +321,26 @@ resource chatProjectDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-
     logs: [
       {
         categoryGroup: 'allLogs'  // In production, this is probably excessive. Please tune to just the log streams that add value to your workload's operations.
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+    ]
+  }
+}
+
+
+@description('Azure Diagnostics: AI Studio chat project -> endpoint allLogs')
+resource chatProjectEndpointDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: 'default'
+  scope: chatProject::endpoint
+  properties: {
+    workspaceId: logWorkspace.id
+    logs: [
+      {
+        categoryGroup: 'allLogs'
         enabled: true
         retentionPolicy: {
           enabled: false

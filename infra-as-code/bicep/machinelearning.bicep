@@ -61,6 +61,12 @@ resource storageFileDataContributorRole 'Microsoft.Authorization/roleDefinitions
   scope: subscription()
 }
 
+@description('Built-in Role: [Azure Machine Learning Workspace Connection Secrets Reader](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles)')
+resource amlWorkspaceSecretsReaderRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  name: 'ea01e6af-a1c1-4350-9563-ad00f8c72ec5'
+  scope: subscription()
+}
+
 // ---- Required permissions for AI Studio (Hub) ---- //
 
 // This architecture uses system managed identity for Azure AI Studio (Hub), Azure AI Studio projects, and for the managed
@@ -171,7 +177,7 @@ resource blobStorageContributorForUserRoleAssignment 'Microsoft.Authorization/ro
 @description('Assign your user the ability to invoke models in Azure OpenAI. This is needed to execute the Prompt flow from within in Azure AI Studio.')
 resource cognitiveServicesOpenAiUserForUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: openAiAccount
-  name: guid(mlStorage.id, yourPrincipalId, cognitiveServicesOpenAiUserRole.id)
+  name: guid(openAiAccount.id, yourPrincipalId, cognitiveServicesOpenAiUserRole.id)
   properties: {
     roleDefinitionId: cognitiveServicesOpenAiUserRole.id
     principalType: 'User'
@@ -299,7 +305,7 @@ resource chatProject 'Microsoft.MachineLearningServices/workspaces@2024-04-01' =
     location: location
     kind: 'Managed'
     identity: {
-      type: 'SystemAssigned' // This resource's identity is automatically assigned AcrPull access to ACR, Storage Blob Data Reader, and AML Metrics Writer on the project.
+      type: 'SystemAssigned' // This resource's identity is automatically assigned AcrPull access to ACR, Storage Blob Data Contributor, and AML Metrics Writer on the project. It is also assigned two additional permissions below.
     }
     properties: {
       description: 'This is the /score endpoint for the "Chat with wikipedia" example Prompt flow deployment. Called by the UI hosted in Web Apps.'
@@ -310,6 +316,28 @@ resource chatProject 'Microsoft.MachineLearningServices/workspaces@2024-04-01' =
 
   // NOTE: Change over baseline, Prompt Flow in the portal an simply use serverless compute for the Azure AI Studio prompt flow testing, don't pre-provision compute for that.
   // Meaniing we no longer have a 'computes' (ComputeInstance) here.  Tradeoff. The Serverless offering has limited flexibility and access, but requires no management.
+}
+
+@description('Assign the online endpoint the ability to interact with the secrets of the parent project. This is needed to execute the Prompt flow from the managed endpoint.')
+resource projectSecretsReaderForOnlineEndpointRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: chatProject
+  name: guid(chatProject.id, yourPrincipalId, amlWorkspaceSecretsReaderRole.id)
+  properties: {
+    roleDefinitionId: amlWorkspaceSecretsReaderRole.id
+    principalType: 'ServicePrincipal'
+    principalId: chatProject::endpoint.identity.principalId
+  }
+}
+
+@description('Assign the online endpoint the ability to invoke models in Azure OpenAI. This is needed to execute the Prompt flow from the managed endpoint.')
+resource projectOpenAIUserForOnlineEndpointRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: openAiAccount
+  name: guid(openAiAccount.id, yourPrincipalId, cognitiveServicesOpenAiUserRole.id)
+  properties: {
+    roleDefinitionId: cognitiveServicesOpenAiUserRole.id
+    principalType: 'ServicePrincipal'
+    principalId: chatProject::endpoint.identity.principalId
+  }
 }
 
 @description('Azure Diagnostics: AI Studio chat project - allLogs')

@@ -115,6 +115,15 @@ To test this architecture, you'll be deploying a pre-built Prompt flow. The prom
       - For **deployment_name**, select the same 'gpt35' from the dropdown menu.
       - For **response_format**, also select '{"type":"text"}' from the dropdown menu.
 
+1. Work around a telemetry issue that results in an error at the point of inferencing.
+
+   At the time of this writing, there is a Prompt flow + OpenTelemetry related [bug](https://github.com/microsoft/promptflow/issues/3751) that manifests itself after the Prompt flow is deployed to a managed online endpoint. All requests to the `/score` endpoint result in `unsupported operand type(s) for +: 'NoneType' and 'NoneType'`. To correct that, perform the following steps.
+
+   1. Open the **Files** view.
+   1. Select 'requirements.txt'.
+   1. The file should be empty, add one line containing just `promptflow-tracing>=1.16.1`.
+   1. Click *Save and install* and close the file.
+
 1. Click **Save**.
 
 ### 3. Test the Prompt flow from Azure AI Studio
@@ -131,7 +140,7 @@ Here you'll test your flow by invoking it directly from the Azure AI Studio. The
 
 1. A grounded response to your question should appear on the UI.
 
-### 4. Deploy to Azure Machine Learning managed online endpoint
+### 4. Deploy the Prompt flow to an Azure Machine Learning managed online endpoint
 
 Here you'll take your tested flow and deploy it to a managed online endpoint.
 
@@ -160,11 +169,17 @@ Here you'll take your tested flow and deploy it to a managed online endpoint.
 
    The deployment can take about eight minutes to create. To check on the process, navigate to the **Deployments** screen using the navigation on the left rail. Eventually, 'ept-chat-deployment' will be on this list with a State of 'Succeeded'.  Do not advance in these step until that is complete.
 
-TODO: Stopped here.  There seems to be an issue. I get this from online 'test' endpoint and also from a local REST client.
+### 5. Test the deployed Prompt flow from Azure AI Studio
 
-> Access denied to list workspace secret due to invalid authentication. Please ensure you have gain RBAC role 'Azure Machine Learning Workspace Connection Secrets Reader' for current workspace, and wait for a few minutes to make sure the new role takes effect.
+1. Click on the deployment name, 'ept-chat-deployment'.
 
-### 5. Publish the chat front-end web app
+1. Click on the **Test** tab.
+
+1. Verify the managed online endpoint is working by asking a similar question that you did from the Prompt flow screen.
+
+TODO: Stopped here.
+
+### 6. Publish the chat front-end web app
 
 The baseline architecture uses [run from zip file in App Service](https://learn.microsoft.com/azure/app-service/deploy-run-package). This approach has many benefits, including eliminating file lock conflicts when deploying.
 

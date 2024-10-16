@@ -42,7 +42,9 @@ Follow these instructions to deploy this example to your Azure subscription, try
   - `Microsoft.OperationalInsights`
   - `Microsoft.Storage`
 
-- Your user has permissions to assign [Azure roles](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles), such as a User Access Administrator or Owner.
+- Your deployment user has permissions to assign [Azure roles](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles) on newly created resource groups and resources. (E.g. `User Access Administrator` or `Owner`) 
+
+- Your deployment user has permissions to purge AI services resources at the subscription scope where the AI services resources are deployed. (E.g. `Contributor` or `Cognitive Services Contributor` built-in roles, or a custom role with the `Microsoft.CognitiveServices/locations/resourceGroups/deletedAccounts/delete` permission)
 
 - The [Azure CLI installed](https://learn.microsoft.com/cli/azure/install-azure-cli)
 
@@ -220,15 +222,12 @@ Once you're there, ask your solution a question. Like before, you question shoul
 
 Most of the Azure resources deployed in the prior steps will incur ongoing charges unless removed. Also a few of the resources deployed go into a soft delete status. It's best to purge those once you're done exploring, Key Vault is given as an example here. Azure OpenAI and Azure Machine Learning Workspaces are others that should be purged.
 
-> **_NOTE:_** To purge the AI services resources, `Microsoft.CognitiveServices/locations/resourceGroups/deletedAccounts/delete` permission must be given to the user on the subscription scope where the resources are deployed. A role assignment at the resource or resource group scopes will be insufficient to access the purge functionality. See the [learn documentation](https://learn.microsoft.com/azure/ai-services/recover-purge-resources?tabs=azure-cli#purge-a-deleted-resource) for additional details.
-
 ```bash
 az group delete --name $RESOURCE_GROUP -y
 
 # Purge the soft delete resources
-SUBSCRIPTION_ID=$(az account show --query id --output tsv)
-az keyvault purge -n kv-${BASE_NAME} -l $LOCATION --no-wait
-az resource delete --ids /subscriptions/${SUBSCRIPTION_ID}/providers/Microsoft.CognitiveServices/locations/${LOCATION}/resourceGroups/${RESOURCE_GROUP}/deletedAccounts/aih-${BASE_NAME}
+az keyvault purge -n kv-${BASE_NAME} -l $LOCATION 
+az cognitiveservices account purge --location $LOCATION --name oai-${BASE_NAME} --resource-group $RESOURCE_GROUP
 ```
 
 ## Contributions

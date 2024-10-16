@@ -81,16 +81,16 @@ module openaiModule 'openai.bicep' = {
 }
 
 // Deploy the gpt 3.5 model within the Azure OpenAI service deployed above.
-module openaiModels 'openai-models.bicep' = {
+/* TODO module openaiModels 'openai-models.bicep' = {
   name: 'openaiModelsDeploy'
   params: {
     openaiName: openaiModule.outputs.openAiResourceName
   }
-}
+}*/
 
-// Deploy machine learning workspace with private endpoint and private DNS zone
-module mlwModule 'machinelearning.bicep' = {
-  name: 'mlwDeploy'
+// Deploy Azure AI studio hub, projects, and managed online endpoints.
+module aiStudio 'machinelearning.bicep' = {
+  name: 'aiStudio'
   params: {
     location: location
     baseName: baseName
@@ -104,7 +104,7 @@ module mlwModule 'machinelearning.bicep' = {
   }
 }
 
-// Deploy the web apps for the front end demo ui and the containerised promptflow endpoint
+// Deploy the web apps for the front end demo ui
 module webappModule 'webapp.bicep' = {
   name: 'webappDeploy'
   params: {

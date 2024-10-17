@@ -42,9 +42,10 @@ Follow these instructions to deploy this example to your Azure subscription, try
   - `Microsoft.OperationalInsights`
   - `Microsoft.Storage`
 
-- Your deployment user has permissions to assign [Azure roles](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles) on newly created resource groups and resources. (E.g. `User Access Administrator` or `Owner`) 
+- Your deployment user must have the following permissions at the subscription scope:
 
-- Your deployment user has permissions to purge AI services resources at the subscription scope where the AI services resources are deployed. (E.g. `Contributor` or `Cognitive Services Contributor` built-in roles, or a custom role with the `Microsoft.CognitiveServices/locations/resourceGroups/deletedAccounts/delete` permission)
+  - Ability to assign [Azure roles](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles) on newly created resource groups and resources. (E.g. `User Access Administrator` or `Owner`) 
+  - Ability to purge deleted AI services resources. (E.g. `Contributor` or `Cognitive Services Contributor`)
 
 - The [Azure CLI installed](https://learn.microsoft.com/cli/azure/install-azure-cli)
 
@@ -227,7 +228,7 @@ az group delete --name $RESOURCE_GROUP -y
 
 # Purge the soft delete resources
 az keyvault purge -n kv-${BASE_NAME} -l $LOCATION 
-az cognitiveservices account purge --location $LOCATION --name oai-${BASE_NAME} --resource-group $RESOURCE_GROUP
+az cognitiveservices account purge -g $RESOURCE_GROUP -l $LOCATION --name oai-${BASE_NAME}
 ```
 
 ## Contributions

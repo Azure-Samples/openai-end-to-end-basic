@@ -67,7 +67,7 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
   name: 'asp-${appName}${uniqueString(resourceGroup().id)}'
   location: location
   sku: {
-    name: 'S1'
+    name: 'B2'
     capacity: 1
   }
   properties: {

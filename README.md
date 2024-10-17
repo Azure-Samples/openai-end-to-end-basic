@@ -196,7 +196,7 @@ Here you'll take your tested flow and deploy it to a managed online endpoint.
    > Following connection(s) are using Microsoft Entra ID based authentication. You need to manually grant the endpoint identity access to the related resource of these connection(s).
    > - aoai
 
-   This has already been taken care of by your IaC deployment. The managed online endpoint identity these permissions to Azure OpenAI, so no action for you to take.
+   This has already been taken care of by your IaC deployment. The managed online endpoint identity already has this permission to Azure OpenAI, so there is no action for you to take.
 
 1. :clock9: Wait for the deployment to finish creating.
 
@@ -238,7 +238,7 @@ Once you're there, ask your solution a question. Like before, you question shoul
 
 ## :broom: Clean up resources
 
-Most Azure resources deployed in the prior steps will incur ongoing charges unless removed. Additionally, a few of the resources deployed go into a soft delete status which may restrict the ability to redeploy another resource with the same name and may not release quota so it is best to purge any soft deleted resources once you are done exploring. Use the following commands to delete the deployed resources and resource group and to purge each of the resources with soft delete.
+Most Azure resources deployed in the prior steps will incur ongoing charges unless removed. Additionally, a few of the resources deployed go into a soft delete status which may restrict the ability to redeploy another resource with the same name and may not release quota, so it is best to purge any soft deleted resources once you are done exploring. Use the following commands to delete the deployed resources and resource group and to purge each of the resources with soft delete.
 
 > **Note:** This will completely delete any data you may have included in this example and it will be unrecoverable.
 

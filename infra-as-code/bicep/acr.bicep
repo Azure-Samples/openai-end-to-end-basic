@@ -1,5 +1,5 @@
 /*
-  Deploy container registry with private endpoint and private DNS zone
+  Deploy container registry, used by the Prompt flow project in Azure AI Studio to store the built docker image.
 */
 
 @description('This is the base name for each Azure resource name (6-8 chars)')

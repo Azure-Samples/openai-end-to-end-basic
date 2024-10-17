@@ -1,5 +1,6 @@
 /*
-  Deploy key vault with private endpoint and private DNS zone
+  Deploy Key Vault. Key Vault is a required dependency for Azure AI Studio hubs and projects. Both resources keep their
+  API keys and connection secrets in here.
 */
 
 @description('This is the base name for each Azure resource name (6-8 chars)')
@@ -29,7 +30,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
       name: 'standard'
     }
     networkAcls: {
-      defaultAction: 'Allow'  // This sample uses identity as the perimeter. Production scenarios should layer in network perimeter control as well.
+      defaultAction: 'Allow'  // Production readiness change: This sample uses identity as the perimeter. Production scenarios should layer in network perimeter control as well.
       bypass: 'AzureServices' // Required for AppGW communication if firewall is enabled in the future.
     }
 

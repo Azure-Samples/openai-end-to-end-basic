@@ -72,11 +72,11 @@ resource amlWorkspaceSecretsReaderRole 'Microsoft.Authorization/roleDefinitions@
   scope: subscription()
 }
 
-// ---- Required permissions for AI Studio (Hub) ---- //
+// ---- Required permissions for the machine learning UI and hosting components ---- //
 
 // This architecture uses system managed identity for Azure AI Studio (Hub), Azure AI Studio projects, and for the managed
 // online endpoint. Because they are system managed identities, when those resources are deployed, the necessary role
-// assignments are automatically created. If you opt to use user-assigned managed identities, you will need to create the
+// assignments are automatically created. If you choose to use user-assigned managed identities, you will need to create the
 // following role assignments with the managed identities.
 
 // Azure AI Studio -> Contributor on parent resource group
@@ -85,7 +85,7 @@ resource amlWorkspaceSecretsReaderRole 'Microsoft.Authorization/roleDefinitions@
 // Azure AI Studio -> Storage File Data Privileged Contributor to the storage account
 // Azure AI Studio -> Key Vault Administrator to the Key Vault
 
-// Each project created needs its own identies assigned similarly
+// Each project created needs its own identities assigned similarly.
 
 // Azure AI Studio Project -> Reader to the storage account
 // Azure AI Studio Project -> Storage Account Contributor to the storage account
@@ -96,66 +96,15 @@ resource amlWorkspaceSecretsReaderRole 'Microsoft.Authorization/roleDefinitions@
 // Azure AI Studio Project -> Contributor to the Container Registry
 // Azure AI Studio Project -> Contributor to Application Insights
 
-// Each deployment under the project needs its own identities assigned as such
+// Each deployment under the project needs its own identities assigned as such.
+
 // Endpoint -> AzureML Metrics Writer to the Azure AI Studio Project
 // Endpoint -> AzureML Machine Learning Workspace Connection Secrets Reader to the Azure AI Studio Project
 // Endpoint -> AcrPull to the Container Registry
 // Endpoint -> Storage Blob Data Contributor to the storage account
 
-/*
-
-// TODO: Evaluate if AI Services should be a resource we add to this architecture (Why, why not?)
-@description('Azure AI Service service agreggation point.')
-resource azureAIServices 'Microsoft.CognitiveServices/accounts@2024-06-01-preview' = {
-  name: 'aischat'
-  location: location
-  kind: 'AIServices'
-  sku: {
-    name: 'S0'
-  }
-  properties: {
-    disableLocalAuth: true
-    raiMonitorConfig: null
-    apiProperties: {}
-    restrictOutboundNetworkAccess: false
-    networkAcls: {
-      defaultAction: 'Allow'
-      ipRules: []
-      bypass: 'None'
-      virtualNetworkRules: []
-    }
-    dynamicThrottlingEnabled: false
-    allowedFqdnList: []
-    restore: false
-    customSubDomainName: 'ck0002'
-    amlWorkspace: null
-    publicNetworkAccess: 'Enabled'
-  }
-}
-
-
-@description('Azure Diagnostics: Machine Learning Workspace - audit')
-resource aiServiceDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  name: 'default'
-  scope: aiServices
-  properties: {
-    workspaceId: logWorkspace.id
-    logs: [
-      {
-        categoryGroup: 'allLogs'
-        enabled: true
-        retentionPolicy: {
-          enabled: false
-          days: 0
-        }
-      }
-    ]
-  }
-}
-*/
-
 // To light up the Azure AI portal experience, the user themsleves need a few data plane permissions. To simulate that for this implementation
-// we will assign the user that is running this deployment the following roles:
+// we will assign the user that is running this deployment the following three roles:
 
 @description('Assign your user the ability to manage files in storage. This is needed to use the Prompt flow editor in Azure AI Studio.')
 resource storageFileDataContributorForUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
@@ -164,7 +113,8 @@ resource storageFileDataContributorForUserRoleAssignment 'Microsoft.Authorizatio
   properties: {
     roleDefinitionId: storageFileDataContributorRole.id
     principalType: 'User'
-    principalId: yourPrincipalId
+    principalId: yourPrincipalId  // Production readiness change: Users shouldn't be using the Prompt flow developer portal in production, so this role
+                                  // assignment would only be needed in pre-production environments.
   }
 }
 
@@ -175,7 +125,10 @@ resource blobStorageContributorForUserRoleAssignment 'Microsoft.Authorization/ro
   properties: {
     roleDefinitionId: storageBlobDataContributorRole.id
     principalType: 'User'
-    principalId: yourPrincipalId
+    principalId: yourPrincipalId  // Production readiness change: Users shouldn't be using the Prompt flow developer portal in production, so this role
+                                  // assignment would only be needed in pre-production environments. In pre-production, use conditions on this assignment
+                                  // to restrict access to just the blob containers used by the project.
+
   }
 }
 
@@ -205,12 +158,12 @@ resource aiHub 'Microsoft.MachineLearningServices/workspaces@2024-07-01-preview'
   properties: {
     friendlyName: 'Azure OpenAI Chat Hub'
     description: 'Hub to support the Microsoft Learn Azure OpenAI basic chat implementation. https://learn.microsoft.com/azure/architecture/ai-ml/architecture/basic-openai-e2e-chat'
-    publicNetworkAccess: 'Enabled'  // Production readiness change. The "Baseline" architecture adds ingress and egress network control over this "Basic" implementation.
+    publicNetworkAccess: 'Enabled'  // Production readiness change: The "Baseline" architecture adds ingress and egress network control over this "Basic" implementation.
     ipAllowlist: []
     serverlessComputeSettings: null
     enableServiceSideCMKEncryption: false
     managedNetwork: {
-      isolationMode: 'Disabled'  // Production readiness change. The "Baseline" architecture adds ingress and egress network control over this "Basic" implementation.
+      isolationMode: 'Disabled'  // Production readiness change: The "Baseline" architecture adds ingress and egress network control over this "Basic" implementation.
     }
     allowRoleAssignmentOnRG: false // Require role assignments at the resource level.
     v1LegacyMode: false
@@ -246,26 +199,9 @@ resource aiHub 'Microsoft.MachineLearningServices/workspaces@2024-07-01-preview'
       target: openAiAccount.properties.endpoint
     }
   }
-
-  /*resource aiServicesConnection 'connections' = {
-    name: 'aiservices'
-    properties: {
-      authType: 'AAD'
-      category: 'AIServices'
-      isSharedToAll: true
-      useWorkspaceManagedIdentity: true
-      peRequirement: 'NotRequired'
-      sharedUserList: []
-      metadata: {
-        ApiType: 'Azure'
-        ResourceId: aiServices.id
-      }
-      target: aiServices.properties.endpoint
-    }
-  }*/
 }
 
-@description('Azure Diagnostics: Machine Learning Workspace - audit')
+@description('Azure Diagnostics: Azure AI Studio Hub - allLogs')
 resource aiHubDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: 'default'
   scope: aiHub
@@ -273,7 +209,7 @@ resource aiHubDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-pre
     workspaceId: logWorkspace.id
     logs: [
       {
-        categoryGroup: 'allLogs'
+        categoryGroup: 'allLogs' // Production readiness change: In production, this is probably excessive. Please tune to just the log streams that add value to your workload's operations.
         enabled: true
         retentionPolicy: {
           enabled: false
@@ -316,17 +252,17 @@ resource chatProject 'Microsoft.MachineLearningServices/workspaces@2024-04-01' =
     properties: {
       description: 'This is the /score endpoint for the "Chat with Wikipedia" example Prompt flow deployment. Called by the UI hosted in Web Apps.'
       authMode: 'Key' // Ideally this should be based on Microsoft Entra ID access. This sample however uses a key stored in Key Vault.
-      publicNetworkAccess: 'Enabled' // This sample uses identity as the perimeter. Production scenarios should layer in network perimeter control as well.
+      publicNetworkAccess: 'Enabled' // Production readiness change: This sample uses identity as the perimeter. Production scenarios should layer in network perimeter control as well.
     }
 
     // TODO: Noticed that traffic goes back to 0% if this is template redeployed after the Prompt flow
     // deplopyment is complete. How can we stop that?
     // TODO: Verify that traffic goes to 100% on initial deploy (I think it does, but need to be sure)
   }
-
-  // NOTE: Change over baseline, Prompt Flow in the portal an simply use serverless compute for the Azure AI Studio prompt flow testing, don't pre-provision compute for that.
-  // Meaniing we no longer have a 'computes' (ComputeInstance) here.  Tradeoff. The Serverless offering has limited flexibility and access, but requires no management.
 }
+
+// Many role assignments are automatically managed by Azure for system managed identities, but the following two were needed to be added
+// manually specifically for the endpoint.
 
 @description('Assign the online endpoint the ability to interact with the secrets of the parent project. This is needed to execute the Prompt flow from the managed endpoint.')
 resource projectSecretsReaderForOnlineEndpointRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
@@ -358,7 +294,7 @@ resource chatProjectDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-
     workspaceId: logWorkspace.id
     logs: [
       {
-        categoryGroup: 'allLogs'  // In production, this is probably excessive. Please tune to just the log streams that add value to your workload's operations.
+        categoryGroup: 'allLogs'  // Production readiness change: In production, this is probably excessive. Please tune to just the log streams that add value to your workload's operations.
         enabled: true
         retentionPolicy: {
           enabled: false
@@ -378,7 +314,7 @@ resource chatProjectEndpointDiagSettings 'Microsoft.Insights/diagnosticSettings@
     workspaceId: logWorkspace.id
     logs: [
       {
-        categoryGroup: 'allLogs'
+        categoryGroup: 'allLogs' // Production readiness change: In production, this is probably excessive. Please tune to just the log streams that add value to your workload's operations.
         enabled: true
         retentionPolicy: {
           enabled: false
@@ -389,7 +325,7 @@ resource chatProjectEndpointDiagSettings 'Microsoft.Insights/diagnosticSettings@
   }
 }
 
-// Production readiness: Client applications that run from compute on Azure should use managed identities instead of
+// Production readiness change: Client applications that run from compute on Azure should use managed identities instead of
 // pre-shared keys. This sample implementation uses a pre-shared key, and should be rewritten to use the managed identity
 // provided by Azure Web Apps.
 // TODO: Figure out if the key is something that's reliably predictable, if so, just use that instead of creating

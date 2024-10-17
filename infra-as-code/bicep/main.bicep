@@ -25,7 +25,7 @@ resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
   }
 }
 
-// Deploy storage account with private endpoint and private DNS zone
+// Deploy Azure Storage account
 module storageModule 'storage.bicep' = {
   name: 'storageDeploy'
   params: {
@@ -35,7 +35,7 @@ module storageModule 'storage.bicep' = {
   }
 }
 
-// Deploy key vault with private endpoint and private DNS zone
+// Deploy Azure Key Vault
 module keyVaultModule 'keyvault.bicep' = {
   name: 'keyVaultDeploy'
   params: {
@@ -45,7 +45,7 @@ module keyVaultModule 'keyvault.bicep' = {
   }
 }
 
-// Deploy container registry with private endpoint and private DNS zone
+// Deploy Azure Container Registry
 module acrModule 'acr.bicep' = {
   name: 'acrDeploy'
   params: {
@@ -101,6 +101,6 @@ module webappModule 'webapp.bicep' = {
     logWorkspaceName: logWorkspace.name
   }
   dependsOn: [
-    openaiModule
+    aiStudio
   ]
 }

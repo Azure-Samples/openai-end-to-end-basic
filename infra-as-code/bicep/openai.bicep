@@ -22,7 +22,7 @@ resource openAiAccount 'Microsoft.CognitiveServices/accounts@2023-10-01-preview'
   kind: 'OpenAI'
   properties: {
     customSubDomainName: 'oai-${baseName}'
-    publicNetworkAccess: 'Enabled'  // This sample uses identity as the perimeter. Production scenarios should layer in network perimeter control as well.
+    publicNetworkAccess: 'Enabled'  // Production readiness change: This sample uses identity as the perimeter. Production scenarios should layer in network perimeter control as well.
     disableLocalAuth: true
   }
   sku: {
@@ -144,7 +144,7 @@ resource openAiAccount 'Microsoft.CognitiveServices/accounts@2023-10-01-preview'
         // version: '0613' // If your region doesn't support this version, please change it.
       }
       raiPolicyName: openAiAccount::blockingFilter.name
-      versionUpgradeOption: 'OnceNewDefaultVersionAvailable' // Production readiness: Always be explicit about model versions, use 'NoAutoUpgrade' to prevent version changes.
+      versionUpgradeOption: 'OnceNewDefaultVersionAvailable' // Production readiness change: Always be explicit about model versions, use 'NoAutoUpgrade' to prevent version changes.
     }
   }
 }

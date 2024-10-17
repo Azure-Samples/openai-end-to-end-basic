@@ -220,7 +220,9 @@ Once you're there, ask your solution a question. Like before, you question shoul
 
 ## :broom: Clean up resources
 
-Most of the Azure resources deployed in the prior steps will incur ongoing charges unless removed. Also a few of the resources deployed go into a soft delete status. It's best to purge those once you're done exploring, Key Vault is given as an example here. Azure OpenAI and Azure Machine Learning Workspaces are others that should be purged.
+Most Azure resources deployed in the prior steps will incur ongoing charges unless removed.  Additionally, a few of the resources deployed go into a soft delete status which may restrict the ability to redeploy another resource with the same name and may not release quota so it is best to purge any soft deleted resources once you are done exploring.  Use the following commands to delete the deployed resources and resource group and to purge each of the resources with soft delete.  
+
+> **Note:** This will completely delete any data you may have included in this example and it will be unrecoverable.
 
 ```bash
 az group delete --name $RESOURCE_GROUP -y

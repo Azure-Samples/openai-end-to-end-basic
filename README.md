@@ -32,21 +32,30 @@ Follow these instructions to deploy this example to your Azure subscription, try
 
 ### Prerequisites
 
-- An [Azure subscription](https://azure.microsoft.com/free/) with the following resource providers [registered](https://learn.microsoft.com/azure/azure-resource-manager/management/resource-providers-and-types#register-resource-provider).
+- An [Azure subscription](https://azure.microsoft.com/free/).
 
-  - `Microsoft.AlertsManagement`
-  - `Microsoft.CognitiveServices`
-  - `Microsoft.ContainerRegistry`
-  - `Microsoft.KeyVault`
-  - `Microsoft.Insights`
-  - `Microsoft.MachineLearningServices`
-  - `Microsoft.ManagedIdentity`
-  - `Microsoft.OperationalInsights`
-  - `Microsoft.Storage`
+  - The subscription must have the following resource providers [registered](https://learn.microsoft.com/azure/azure-resource-manager/management/resource-providers-and-types#register-resource-provider)
+
+    - `Microsoft.AlertsManagement`
+    - `Microsoft.CognitiveServices`
+    - `Microsoft.ContainerRegistry`
+    - `Microsoft.KeyVault`
+    - `Microsoft.Insights`
+    - `Microsoft.MachineLearningServices`
+    - `Microsoft.ManagedIdentity`
+    - `Microsoft.OperationalInsights`
+    - `Microsoft.Storage`
+
+  - The subscription selected must have the following quota available in the location you'll select to deploy this implementation:
+
+    - Azure OpenAI: Standard, GPT-35-Turbo, 25K TPM
+    - Storage Accounts: 1
+    - Total Cluster Dedicated Regional vCPUs: 4
+    - Standard DASv4 Family Cluster Dedicated vCPUs: 4
 
 - Your deployment user must have the following permissions at the subscription scope:
 
-  - Ability to assign [Azure roles](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles) on newly created resource groups and resources. (E.g. `User Access Administrator` or `Owner`) 
+  - Ability to assign [Azure roles](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles) on newly created resource groups and resources. (E.g. `User Access Administrator` or `Owner`)
   - Ability to purge deleted AI services resources. (E.g. `Contributor` or `Cognitive Services Contributor`)
 
 - The [Azure CLI installed](https://learn.microsoft.com/cli/azure/install-azure-cli)
@@ -71,19 +80,16 @@ The following steps are required to deploy the infrastructure from the command l
    az account set --subscription xxxxx
    ```
 
-1. Set the deployment location.
-
-   Because this solution uses Azure AI Studio, the location MUST be one of: `southcentralus`, `westeurope`, `southeastasia`, `japaneast` to support all resources deployed.
+1. Set the deployment location to one with available quota.
 
    ```bash
-   # TODO: Figure out what the real restrictions are here, if any. What should be the new default location?
-   LOCATION=southcentralus
+   LOCATION=eastus2
    ```
 
 1. Set the base name value that will be used as part of the Azure resource names for the resources deployed in this solution.
 
    ```bash
-   BASE_NAME=<base resource name, between 6 and 8 lowercase characters, most resource names will include this text>
+   BASE_NAME=<base resource name, between 6 and 8 lowercase characters, all DNS names will include this text, so it must be unique.>
    ```
 
 1. Create a resource group and deploy the infrastructure.
@@ -185,6 +191,13 @@ Here you'll take your tested flow and deploy it to a managed online endpoint.
 
 1. Click the **Create** button.
 
+   There is a notice on the final screen that says:
+
+   > Following connection(s) are using Microsoft Entra ID based authentication. You need to manually grant the endpoint identity access to the related resource of these connection(s).
+   > - aoai
+
+   This has already been taken care of by your IaC deployment. The managed online endpoint identity these permissions to Azure OpenAI, so no action for you to take.
+
 1. :clock9: Wait for the deployment to finish creating.
 
    The deployment can take over ten minutes to create. To check on the process, navigate to the **Deployments** screen using the link in the left navigation. Eventually 'ept-chat-deployment' will be on this list and then eventually the deployment will be listed with a State of 'Succeeded'. Use the **Refresh** button as needed.
@@ -209,6 +222,8 @@ APPSERVICE_NAME=app-$BASE_NAME
 az webapp deploy --resource-group $RESOURCE_GROUP --name $APPSERVICE_NAME --type zip --src-url https://raw.githubusercontent.com/Azure-Samples/openai-end-to-end-basic/main/website/chatui.zip
 ```
 
+> Sometimes the prior deployment will fail with a `GatewayTimeout`. If you receive that error, you're safe to simply execute the command again.
+
 ## :checkered_flag: Try it out. Test the deployed application.
 
 After the deployment is complete, you can try the deployed application by navigating to the Web App's URL in a web browser. The URL is https:\//BASE_NAME.azurewebapps.net.
@@ -223,7 +238,7 @@ Once you're there, ask your solution a question. Like before, you question shoul
 
 ## :broom: Clean up resources
 
-Most Azure resources deployed in the prior steps will incur ongoing charges unless removed.  Additionally, a few of the resources deployed go into a soft delete status which may restrict the ability to redeploy another resource with the same name and may not release quota so it is best to purge any soft deleted resources once you are done exploring.  Use the following commands to delete the deployed resources and resource group and to purge each of the resources with soft delete.  
+Most Azure resources deployed in the prior steps will incur ongoing charges unless removed. Additionally, a few of the resources deployed go into a soft delete status which may restrict the ability to redeploy another resource with the same name and may not release quota so it is best to purge any soft deleted resources once you are done exploring. Use the following commands to delete the deployed resources and resource group and to purge each of the resources with soft delete.
 
 > **Note:** This will completely delete any data you may have included in this example and it will be unrecoverable.
 

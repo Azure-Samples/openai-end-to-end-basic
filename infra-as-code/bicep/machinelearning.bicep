@@ -3,6 +3,8 @@
 */
 
 @description('This is the base name for each Azure resource name (6-8 chars)')
+@minLength(6)
+@maxLength(8)
 param baseName string
 
 @description('The resource group location')
@@ -12,8 +14,11 @@ param location string = resourceGroup().location
 param applicationInsightsName string
 param containerRegistryName string
 param keyVaultName string
-param mlStorageAccountName string
+param aiStudioStorageAccountName string
+
+@description('The name of the workload\'s existing Log Analytics workspace.')
 param logWorkspaceName string
+
 param openAiResourceName string
 param yourPrincipalId string
 
@@ -35,8 +40,8 @@ resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' existing = {
   name: keyVaultName
 }
 
-resource mlStorage 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
-  name: mlStorageAccountName
+resource aiStudioStorageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
+  name: aiStudioStorageAccountName
 }
 
 resource openAiAccount 'Microsoft.CognitiveServices/accounts@2023-05-01' existing = {
@@ -154,8 +159,8 @@ resource aiServiceDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01
 
 @description('Assign your user the ability to manage files in storage. This is needed to use the Prompt flow editor in Azure AI Studio.')
 resource storageFileDataContributorForUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  scope: mlStorage
-  name: guid(mlStorage.id, yourPrincipalId, storageFileDataContributorRole.id)
+  scope: aiStudioStorageAccount
+  name: guid(aiStudioStorageAccount.id, yourPrincipalId, storageFileDataContributorRole.id)
   properties: {
     roleDefinitionId: storageFileDataContributorRole.id
     principalType: 'User'
@@ -165,8 +170,8 @@ resource storageFileDataContributorForUserRoleAssignment 'Microsoft.Authorizatio
 
 @description('Assign your user the ability to manage Prompt flow state files from blob storage. This is needed to execute the Prompt flow from within in Azure AI Studio.')
 resource blobStorageContributorForUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  scope: mlStorage
-  name: guid(mlStorage.id, yourPrincipalId, storageBlobDataContributorRole.id)
+  scope: aiStudioStorageAccount
+  name: guid(aiStudioStorageAccount.id, yourPrincipalId, storageBlobDataContributorRole.id)
   properties: {
     roleDefinitionId: storageBlobDataContributorRole.id
     principalType: 'User'
@@ -214,7 +219,7 @@ resource aiHub 'Microsoft.MachineLearningServices/workspaces@2024-07-01-preview'
     }
 
     // Default settings for projects
-    storageAccount: mlStorage.id
+    storageAccount: aiStudioStorageAccount.id
     containerRegistry: containerRegistry.id
     systemDatastoresAuthMode: 'identity'
     enableSoftwareBillOfMaterials: true

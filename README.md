@@ -1,28 +1,30 @@
 # Azure OpenAI end-to-end basic reference implementation
 
-This reference implementation illustrates a basic approach for authoring and running a chat application in a single region with Azure Machine Learning and Azure OpenAI. This reference implementation supports the [Basic Azure OpenAI end-to-end chat reference architecture](https://learn.microsoft.com/azure/architecture/ai-ml/architecture/basic-openai-e2e-chat).
+This reference implementation illustrates a basic approach for authoring and running a chat application in a single region with Prompt flow and Azure OpenAI. This reference implementation supports the [Basic Azure OpenAI end-to-end chat reference architecture](https://learn.microsoft.com/azure/architecture/ai-ml/architecture/basic-openai-e2e-chat).
 
-The implementation takes advantage of [Prompt flow](https://microsoft.github.io/promptflow/) in [Azure Machine Learning](https://azure.microsoft.com/products/machine-learning) to build and deploy flows that can link the following actions required by a generative AI chat application:
+The implementation will have you build and testing a [Prompt flow](https://microsoft.github.io/promptflow/) in Azure AI Studio, deploy the flow to an Azure Machine Learning online managed endpoint. You'll be exposed to common generative AI chat application characteristics such as:
 
 - Creating prompts
 - Querying data stores for grounding data
 - Python code
 - Calling language models (such as GPT models)
 
-The reference implementation illustrates a basic example of a chat application. For a reference implementation that implements enterprise requirements, please see the [OpenAI end-to-end baseline reference implementation](https://github.com/Azure-Samples/openai-end-to-end-baseline).
+The reference implementation illustrates a basic example of a chat application. For a reference implementation that implements more enterprise requirements, please see the [OpenAI end-to-end baseline reference implementation](https://github.com/Azure-Samples/openai-end-to-end-baseline).
 
 ## Architecture
 
 The implementation covers the following scenarios:
 
-1. Authoring a flow - Authoring a flow using Prompt flow in an Azure Machine Learning workspace.
-1. Deploying a flow - The client UI is hosted in Azure App Service and accesses the Azure OpenAI Service via a Machine Learning managed online endpoint.
+1. Authoring a flow - Authoring a flow using Prompt flow in Azure AI Studio
+1. Deploying a flow - The client UI is hosted in Azure App Service and accesses the Azure OpenAI Service via a Managed online endpoint.
 
 ### Deploying a flow to Azure Machine Learning managed online endpoint
 
+TODO: Update diagram for architectural changes.
+
 ![Diagram of the deploying a flow to Azure Machine Learning managed online endpoint.](docs/media/openai-end-to-end-basic.png)
 
-The Azure Machine Learning deployment architecture diagram illustrates how a front-end web application connects to a managed online endpoint.
+The architecture diagram illustrates how a front-end web application connects to a managed online endpoint hosting the Prompt flow logic.
 
 ## Deployment guide
 

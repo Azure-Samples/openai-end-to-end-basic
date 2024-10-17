@@ -83,7 +83,7 @@ module aiStudio 'machinelearning.bicep' = {
     baseName: baseName
     applicationInsightsName: appInsightsModule.outputs.applicationInsightsName
     keyVaultName: keyVaultModule.outputs.keyVaultName
-    mlStorageAccountName: storageModule.outputs.mlDeployStorageName
+    aiStudioStorageAccountName: storageModule.outputs.aiStudioStorageAccountName
     containerRegistryName: 'cr${baseName}'
     yourPrincipalId: yourPrincipalId
     logWorkspaceName: logWorkspace.name

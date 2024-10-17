@@ -44,7 +44,10 @@ Follow these instructions to deploy this example to your Azure subscription, try
   - `Microsoft.OperationalInsights`
   - `Microsoft.Storage`
 
-- Your user has permissions to assign [Azure roles](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles), such as a User Access Administrator or Owner.
+- Your deployment user must have the following permissions at the subscription scope:
+
+  - Ability to assign [Azure roles](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles) on newly created resource groups and resources. (E.g. `User Access Administrator` or `Owner`) 
+  - Ability to purge deleted AI services resources. (E.g. `Contributor` or `Cognitive Services Contributor`)
 
 - The [Azure CLI installed](https://learn.microsoft.com/cli/azure/install-azure-cli)
 
@@ -68,14 +71,24 @@ The following steps are required to deploy the infrastructure from the command l
    az account set --subscription xxxxx
    ```
 
+1. Set the deployment location.
+
+   Because this solution uses Azure AI Studio, the location MUST be one of: `southcentralus`, `westeurope`, `southeastasia`, `japaneast` to support all resources deployed.
+
+   ```bash
+   # TODO: Figure out what the real restrictions are here, if any. What should be the new default location?
+   LOCATION=southcentralus
+   ```
+
+1. Set the base name value that will be used as part of the Azure resource names for the resources deployed in this solution.
+
+   ```bash
+   BASE_NAME=<base resource name, between 6 and 8 lowercase characters, most resource names will include this text>
+   ```
+
 1. Create a resource group and deploy the infrastructure.
 
    ```bash
-   # Because this solution uses Azure AI Studio, the location MUST be one of: southcentralus, westeurope, southeastasia, japaneast to support all resources deployed
-   # TODO: Figure out what the real restrictions are here, if any. What should be the new default location?
-   LOCATION=southcentralus
-   BASE_NAME=<base resource name, between 6 and 8 lowercase characters, most resource names will include this text>
-
    RESOURCE_GROUP=rg-chat-basic-${LOCATION}
    az group create -l $LOCATION -n $RESOURCE_GROUP
 
@@ -210,17 +223,16 @@ Once you're there, ask your solution a question. Like before, you question shoul
 
 ## :broom: Clean up resources
 
-Most of the Azure resources deployed in the prior steps will incur ongoing charges unless removed. Also a few of the resources deployed go into a soft delete status. It's best to purge those once you're done exploring, Key Vault is given as an example here. Azure OpenAI and Azure Machine Learning Workspaces are others that should be purged.
+Most Azure resources deployed in the prior steps will incur ongoing charges unless removed.  Additionally, a few of the resources deployed go into a soft delete status which may restrict the ability to redeploy another resource with the same name and may not release quota so it is best to purge any soft deleted resources once you are done exploring.  Use the following commands to delete the deployed resources and resource group and to purge each of the resources with soft delete.  
+
+> **Note:** This will completely delete any data you may have included in this example and it will be unrecoverable.
 
 ```bash
 az group delete --name $RESOURCE_GROUP -y
 
 # Purge the soft delete resources
-az keyvault purge -n kv-${BASE_NAME}
-az openai purge -n oai-${BASE_NAME}  <-- TODO
-az aml purge -n amlw <-- TODO
-az ai services purge -n aih-${BASE_NAME} <--- TODO
-Role assignment removals
+az keyvault purge -n kv-${BASE_NAME} -l $LOCATION 
+az cognitiveservices account purge -g $RESOURCE_GROUP -l $LOCATION --name oai-${BASE_NAME}
 ```
 
 ## Contributions

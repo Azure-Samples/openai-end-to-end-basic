@@ -3,11 +3,14 @@
 */
 
 @description('This is the base name for each Azure resource name (6-8 chars)')
+@minLength(6)
+@maxLength(8)
 param baseName string
 
 @description('The resource group location')
 param location string = resourceGroup().location
 
+@description('The name of the workload\'s existing Log Analytics workspace.')
 param logWorkspaceName string
 
 //variables

@@ -20,9 +20,7 @@ The implementation covers the following scenarios:
 
 ### Deploying a flow to Azure Machine Learning managed online endpoint
 
-TODO: Update diagram for architectural changes.
-
-![Diagram of the deploying a flow to Azure Machine Learning managed online endpoint.](docs/media/openai-end-to-end-basic.png)
+![Diagram of the architecture for deploying a flow to Azure Machine Learning managed online endpoint.](docs/media/openai-end-to-end-basic.png)
 
 The architecture diagram illustrates how a front-end web application connects to a managed online endpoint hosting the Prompt flow logic.
 

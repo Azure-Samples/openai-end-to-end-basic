@@ -6,9 +6,10 @@ param location string = resourceGroup().location
 @maxLength(8)
 param baseName string
 
-// @description('Optional. When true will deploy a cost-optimised environment for development purposes. Note that when this param is true, the deployment is not suitable or recommended for Production environments. Default = false.')
-// param developmentEnvironment bool = false
-
+@description('Your principal ID. Used for a few role assignments.')
+@minLength(36)
+@maxLength(36)
+param yourPrincipalId string
 
 // ---- Log Analytics workspace ----
 resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
@@ -24,7 +25,7 @@ resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
   }
 }
 
-// Deploy storage account with private endpoint and private DNS zone
+// Deploy Azure Storage account
 module storageModule 'storage.bicep' = {
   name: 'storageDeploy'
   params: {
@@ -34,18 +35,17 @@ module storageModule 'storage.bicep' = {
   }
 }
 
-// Deploy key vault with private endpoint and private DNS zone
+// Deploy Azure Key Vault
 module keyVaultModule 'keyvault.bicep' = {
   name: 'keyVaultDeploy'
   params: {
     location: location
     baseName: baseName
-    apiKey: 'key'
     logWorkspaceName: logWorkspace.name
   }
 }
 
-// Deploy container registry with private endpoint and private DNS zone
+// Deploy Azure Container Registry
 module acrModule 'acr.bicep' = {
   name: 'acrDeploy'
   params: {
@@ -75,30 +75,23 @@ module openaiModule 'openai.bicep' = {
   }
 }
 
-// Deploy the gpt 3.5 model within the Azure OpenAI service deployed above.
-module openaiModels 'openai-models.bicep' = {
-  name: 'openaiModelsDeploy'
-  params: {
-    openaiName: openaiModule.outputs.openAiResourceName
-  }
-}
-
-// Deploy machine learning workspace with private endpoint and private DNS zone
-module mlwModule 'machinelearning.bicep' = {
-  name: 'mlwDeploy'
+// Deploy Azure AI Studio hub, projects, and managed online endpoints.
+module aiStudio 'machinelearning.bicep' = {
+  name: 'aiStudio'
   params: {
     location: location
     baseName: baseName
     applicationInsightsName: appInsightsModule.outputs.applicationInsightsName
     keyVaultName: keyVaultModule.outputs.keyVaultName
-    mlStorageAccountName: storageModule.outputs.mlDeployStorageName
+    aiStudioStorageAccountName: storageModule.outputs.aiStudioStorageAccountName
     containerRegistryName: 'cr${baseName}'
+    yourPrincipalId: yourPrincipalId
     logWorkspaceName: logWorkspace.name
     openAiResourceName: openaiModule.outputs.openAiResourceName
   }
 }
 
-// Deploy the web apps for the front end demo ui and the containerised promptflow endpoint
+// Deploy the web apps for the front end demo UI
 module webappModule 'webapp.bicep' = {
   name: 'webappDeploy'
   params: {
@@ -108,6 +101,6 @@ module webappModule 'webapp.bicep' = {
     logWorkspaceName: logWorkspace.name
   }
   dependsOn: [
-    openaiModule
+    aiStudio
   ]
 }

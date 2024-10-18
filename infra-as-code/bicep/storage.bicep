@@ -1,20 +1,21 @@
 /*
-  Deploy storage account with private endpoint and private DNS zone
+  Deploy storage account that will be connected to Azure AI Studio. It is used by
+  Azure AI Studio to store Prompt flow files, traces, and other assets.
 */
 
 @description('This is the base name for each Azure resource name (6-8 chars)')
 @minLength(6)
+@maxLength(8)
 param baseName string
 
 @description('The resource group location')
 param location string = resourceGroup().location
 
-// existing resource name params 
+@description('The name of the workload\'s existing Log Analytics workspace.')
 param logWorkspaceName string
 
 // variables
-var mlStorageName = 'stml${baseName}'
-
+var aiStudioStorageAccountName = 'stml${baseName}'
 
 // ---- Existing resources ----
 resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = {
@@ -22,8 +23,8 @@ resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' exis
 }
 
 // ---- Storage resources ----
-resource mlStorage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
-  name: mlStorageName
+resource aiStudioStorageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
+  name: aiStudioStorageAccountName
   location: location
   sku: {
     name: 'Standard_ZRS'
@@ -63,10 +64,10 @@ resource mlStorage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   }
 }
 
-// Enable Machine Learning Storage Account blob diagnostic settings
-resource mlStorageBlobDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  name: '${mlStorage.name}-blobdiagnosticSettings'
-  scope: mlStorage::Blob
+@description('Azure AI Studio\'s blob storage account diagnostic settings.')
+resource aiStudioStorageAccountBlobDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: '${aiStudioStorageAccount.name}-blobdiagnosticSettings'
+  scope: aiStudioStorageAccount::Blob
   properties: {
     workspaceId: logWorkspace.id
     logs: [
@@ -83,10 +84,10 @@ resource mlStorageBlobDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-0
   }
 }
 
-// Enable Machine Learning Storage Account file diagnostic settings
-resource mlStorageFileDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  name: '${mlStorage.name}-filediagnosticSettings'
-  scope: mlStorage::File
+@description('Azure AI Studio\'s file storage account diagnostic settings.')
+resource aiStudioStorageAccountFileDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: '${aiStudioStorageAccount.name}-filediagnosticSettings'
+  scope: aiStudioStorageAccount::File
   properties: {
     workspaceId: logWorkspace.id
     logs: [
@@ -104,4 +105,4 @@ resource mlStorageFileDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-0
 }
 
 @description('The name of the ML storage account.')
-output mlDeployStorageName string = mlStorage.name
+output aiStudioStorageAccountName string = aiStudioStorageAccount.name

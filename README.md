@@ -47,7 +47,7 @@ Follow these instructions to deploy this example to your Azure subscription, try
 
 - An [Azure subscription](https://azure.microsoft.com/free/).
 
-  - The subscription must have the following resource providers [registered](https://learn.microsoft.com/azure/azure-resource-manager/management/resource-providers-and-types#register-resource-provider)
+  - The subscription must have the following resource providers [registered](https://learn.microsoft.com/azure/azure-resource-manager/management/resource-providers-and-types#register-resource-provider).
 
     - `Microsoft.AlertsManagement`
     - `Microsoft.CognitiveServices`
@@ -59,7 +59,7 @@ Follow these instructions to deploy this example to your Azure subscription, try
     - `Microsoft.OperationalInsights`
     - `Microsoft.Storage`
 
-  - The subscription selected must have the following quota available in the location you'll select to deploy this implementation:
+  - The subscription selected must have the following quota available in the location you'll select to deploy this implementation.
 
     - Azure OpenAI: Standard, GPT-35-Turbo, 25K TPM
     - Storage Accounts: 1
@@ -111,7 +111,7 @@ The following steps are required to deploy the infrastructure from the command l
    RESOURCE_GROUP=rg-chat-basic-${LOCATION}
    az group create -l $LOCATION -n $RESOURCE_GROUP
 
-   PRINCIPAL_ID=$(az ad signed-in-user show --query id --output tsv)
+   PRINCIPAL_ID=$(az ad signed-in-user show --query id -o tsv)
 
    # This takes about 10 minutes to run.
    az deployment group create -f ./infra-as-code/bicep/main.bicep \
@@ -196,8 +196,8 @@ Here you'll take your tested flow and deploy it to a managed online endpoint.
 
 1. Set the following Advanced settings, and click **Next**.
 
-   - **Deployment tags**: You can leave blank
-   - **Environment**: Use environment of current flow definition
+   - **Deployment tags**: You can leave blank.
+   - **Environment**: Use environment of current flow definition.
    - **Application Insights diagnostics**: Enabled
 
 1. Ensure the Output & connections settings are still set to the same connection name and deployment name as configured in the Prompt flow, and click **Next**.
@@ -232,19 +232,19 @@ Workloads build chat functionality into an application. Those interfaces usually
 ```bash
 APPSERVICE_NAME=app-$BASE_NAME
 
-az webapp deploy --resource-group $RESOURCE_GROUP --name $APPSERVICE_NAME --type zip --src-url https://raw.githubusercontent.com/Azure-Samples/openai-end-to-end-basic/main/website/chatui.zip
+az webapp deploy -g $RESOURCE_GROUP -n $APPSERVICE_NAME --type zip --src-url https://raw.githubusercontent.com/Azure-Samples/openai-end-to-end-basic/main/website/chatui.zip
 ```
 
 > Sometimes the prior deployment will fail with a `GatewayTimeout`. If you receive that error, you're safe to simply execute the command again.
 
 ## :checkered_flag: Try it out. Test the deployed application.
 
-After the deployment is complete, you can try the deployed application by navigating to the Web App's URL in a web browser. The URL is https:\//BASE_NAME.azurewebapps.net.
+After the deployment is complete, you can try the deployed application by navigating to the Web App's URL in a web browser.
 
-You can also execute the following from your workstation. This command usually does not work from Azure Cloud Shell.
+You can also execute the following from your workstation. Unfortunately, this command does not reliably work from Azure Cloud Shell.
 
 ```bash
-az webapp browse --resource-group $RESOURCE_GROUP --name $APPSERVICE_NAME
+az webapp browse -g $RESOURCE_GROUP -n $APPSERVICE_NAME
 ```
 
 Once you're there, ask your solution a question. Like before, you question should ideally involve recent data or events, something that would only be known by the RAG process including content from Wikipedia.
@@ -256,11 +256,11 @@ Most Azure resources deployed in the prior steps will incur ongoing charges unle
 > **Note:** This will completely delete any data you may have included in this example and it will be unrecoverable.
 
 ```bash
-az group delete --name $RESOURCE_GROUP -y
+az group delete -n $RESOURCE_GROUP -y
 
 # Purge the soft delete resources
 az keyvault purge -n kv-${BASE_NAME} -l $LOCATION 
-az cognitiveservices account purge -g $RESOURCE_GROUP -l $LOCATION --name oai-${BASE_NAME}
+az cognitiveservices account purge -g $RESOURCE_GROUP -l $LOCATION -n oai-${BASE_NAME}
 ```
 
 ## Contributions

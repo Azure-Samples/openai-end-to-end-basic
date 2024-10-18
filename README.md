@@ -2,7 +2,7 @@
 
 This reference implementation illustrates a basic approach for authoring and running a chat application in a single region with Prompt flow and Azure OpenAI. This reference implementation supports the [Basic Azure OpenAI end-to-end chat reference architecture](https://learn.microsoft.com/azure/architecture/ai-ml/architecture/basic-openai-e2e-chat).
 
-The implementation will have you build and testing a [Prompt flow](https://microsoft.github.io/promptflow/) in Azure AI Studio, deploy the flow to an Azure Machine Learning online managed endpoint. You'll be exposed to common generative AI chat application characteristics such as:
+The implementation will have you build and test a [Prompt flow](https://microsoft.github.io/promptflow/) in Azure AI Studio and deploy the flow to an Azure Machine Learning online managed endpoint. You'll be exposed to common generative AI chat application characteristics such as:
 
 - Creating prompts
 - Querying data stores for grounding data

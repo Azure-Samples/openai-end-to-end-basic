@@ -20,7 +20,7 @@ The implementation covers the following scenarios:
 
 ### Deploying a flow to Azure Machine Learning managed online endpoint
 
-![Diagram of the architecture for deploying a flow to Azure Machine Learning managed online endpoint hosted in Azure AI Studio. It shows an App Service hosting a sample application fronting an Azure AI Studio project with associated connections and services. ](docs/media/openai-end-to-end-basic.png)
+![Diagram of the architecture for deploying a flow to Azure Machine Learning managed online endpoint hosted in Azure AI Studio. It shows an App Service hosting a sample application fronting an Azure AI Studio project with associated connections and services.](docs/media/openai-end-to-end-basic.png)
 
 The architecture diagram illustrates how a front-end web application connects to a managed online endpoint hosting the Prompt flow logic.
 

@@ -26,6 +26,19 @@ TODO: Update diagram for architectural changes.
 
 The architecture diagram illustrates how a front-end web application connects to a managed online endpoint hosting the Prompt flow logic.
 
+### :recycle: Transitioning to Azure AI Studio
+
+Azure patterns & practices team is transitioning this and related content from Azure Machine Learning workspaces to Azure AI Studio hub + projects. During ths transition period some of the assets might be out of sync with each other technology wise. Architecturally, these two technologies are very similar to each other, even down to the resource provider level. Pardon our dust as we make this transition across the assets. Here is the current status.
+
+| Asset | Workspace |
+| :---- | :-------- |
+| Basic implementation *(this repo)* | :ballot_box_with_check: AI Studio project |
+| [Basic architecture on Microsoft Learn](https://learn.microsoft.com/azure/architecture/ai-ml/architecture/basic-openai-e2e-chat) | :white_square_button: AML workspace |
+| [Baseline implementation](https://github.com/Azure-Samples/openai-end-to-end-baseline)  | :white_square_button: AML workspace |
+| [Baseline architecture on Microsoft Learn](https://learn.microsoft.com/en-us/azure/architecture/ai-ml/architecture/baseline-openai-e2e-chat) | :white_square_button: AML workspace |
+| [Azure landing zone implementation](https://github.com/Azure-Samples/azure-openai-chat-baseline-landing-zone) | :white_square_button: AML workspace |
+| [Azure landing zone architecture on Microsoft Learn](https://learn.microsoft.com/en-us/azure/architecture/ai-ml/architecture/azure-openai-baseline-landing-zone) | :white_square_button: AML workspace |
+
 ## Deployment guide
 
 Follow these instructions to deploy this example to your Azure subscription, try out what you've deployed, and learn how to clean up those resources.
@@ -73,14 +86,14 @@ The following steps are required to deploy the infrastructure from the command l
    cd openai-end-to-end-basic
    ```
 
-1. Log in and set subscription
+1. Log in and set your target subscription.
 
    ```bash
    az login
    az account set --subscription xxxxx
    ```
 
-1. Set the deployment location to one with available quota.
+1. Set the deployment location to one with available quota in your subscription.
 
    ```bash
    LOCATION=eastus2

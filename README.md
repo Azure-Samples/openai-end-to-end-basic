@@ -35,9 +35,9 @@ Azure patterns & practices team is transitioning this and related content from A
 | Basic implementation *(this repo)* | :ballot_box_with_check: AI Studio project |
 | [Basic architecture on Microsoft Learn](https://learn.microsoft.com/azure/architecture/ai-ml/architecture/basic-openai-e2e-chat) | :white_square_button: AML workspace |
 | [Baseline implementation](https://github.com/Azure-Samples/openai-end-to-end-baseline)  | :white_square_button: AML workspace |
-| [Baseline architecture on Microsoft Learn](https://learn.microsoft.com/en-us/azure/architecture/ai-ml/architecture/baseline-openai-e2e-chat) | :white_square_button: AML workspace |
+| [Baseline architecture on Microsoft Learn](https://learn.microsoft.com/azure/architecture/ai-ml/architecture/baseline-openai-e2e-chat) | :white_square_button: AML workspace |
 | [Azure landing zone implementation](https://github.com/Azure-Samples/azure-openai-chat-baseline-landing-zone) | :white_square_button: AML workspace |
-| [Azure landing zone architecture on Microsoft Learn](https://learn.microsoft.com/en-us/azure/architecture/ai-ml/architecture/azure-openai-baseline-landing-zone) | :white_square_button: AML workspace |
+| [Azure landing zone architecture on Microsoft Learn](https://learn.microsoft.com/azure/architecture/ai-ml/architecture/azure-openai-baseline-landing-zone) | :white_square_button: AML workspace |
 
 ## Deployment guide
 
@@ -45,7 +45,7 @@ Follow these instructions to deploy this example to your Azure subscription, try
 
 ### Prerequisites
 
-- An [Azure subscription](https://azure.microsoft.com/free/).
+- An [Azure subscription](https://azure.microsoft.com/free/)
 
   - The subscription must have the following resource providers [registered](https://learn.microsoft.com/azure/azure-resource-manager/management/resource-providers-and-types#register-resource-provider).
 
@@ -66,7 +66,7 @@ Follow these instructions to deploy this example to your Azure subscription, try
     - Total Cluster Dedicated Regional vCPUs: 4
     - Standard DASv4 Family Cluster Dedicated vCPUs: 4
 
-- Your deployment user must have the following permissions at the subscription scope:
+- Your deployment user must have the following permissions at the subscription scope.
 
   - Ability to assign [Azure roles](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles) on newly created resource groups and resources. (E.g. `User Access Administrator` or `Owner`)
   - Ability to purge deleted AI services resources. (E.g. `Contributor` or `Cognitive Services Contributor`)

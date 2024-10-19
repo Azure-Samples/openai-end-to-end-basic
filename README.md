@@ -73,11 +73,10 @@ The following steps are required to deploy the infrastructure from the command l
 
 1. Set the deployment location.
 
-   Because this solution uses Azure AI Studio, the location MUST be one of: `southcentralus`, `westeurope`, `southeastasia`, `japaneast` to support all resources deployed.
+   Because this solution uses Azure AI Studio, the location MUST be one of: `australiaeast`, `eastus`, `eastus2`, `francecentral`, `japaneast`, `southcentralus`, `swedencentral`, `switzerlandnorth`, or `uksouth` to support all resources deployed.
 
    ```bash
-   # TODO: Figure out what the real restrictions are here, if any. What should be the new default location?
-   LOCATION=southcentralus
+   LOCATION=eastus2
    ```
 
 1. Set the base name value that will be used as part of the Azure resource names for the resources deployed in this solution.

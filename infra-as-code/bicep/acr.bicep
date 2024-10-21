@@ -1,9 +1,10 @@
 /*
-  Deploy container registry with private endpoint and private DNS zone
+  Deploy container registry, used by the Prompt flow project in Azure AI Studio to store the built docker image.
 */
 
 @description('This is the base name for each Azure resource name (6-8 chars)')
 @minLength(6)
+@maxLength(8)
 param baseName string
 
 @description('The resource group location')
@@ -12,9 +13,7 @@ param location string = resourceGroup().location
 @description('Provide a tier of your Azure Container Registry.')
 param acrSku string = 'Premium'
 
-// @description('Determines whether or not a private endpoint, DNS Zone, Zone Link and Zone Group is created for this resource.')
-
-// existing resource name params 
+@description('The name of the workload\'s existing Log Analytics workspace.')
 param logWorkspaceName string
 
 //variables
@@ -35,8 +34,11 @@ resource acrResource 'Microsoft.ContainerRegistry/registries@2023-01-01-preview'
   properties: {
     adminUserEnabled: false
     networkRuleSet: {
-      defaultAction: 'Deny'
+      defaultAction: 'Allow'
+      ipRules: []
     }
+    anonymousPullEnabled: false
+    networkRuleBypassOptions: 'None'
     publicNetworkAccess: 'Enabled'
     zoneRedundancy: 'Disabled'
   }

@@ -1,14 +1,17 @@
 /*
-  Deploy key vault with private endpoint and private DNS zone
+  Deploy Key Vault. Key Vault is a required dependency for Azure AI Studio hubs and projects. Both resources keep their
+  API keys and connection secrets in here.
 */
 
 @description('This is the base name for each Azure resource name (6-8 chars)')
+@minLength(6)
+@maxLength(8)
 param baseName string
 
 @description('The resource group location')
 param location string = resourceGroup().location
 
-param apiKey string
+@description('The name of the workload\'s existing Log Analytics workspace.')
 param logWorkspaceName string
 
 //variables
@@ -27,7 +30,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
       name: 'standard'
     }
     networkAcls: {
-      defaultAction: 'Allow'  // This sample uses identity as the perimeter. Production scenarios should layer in network perimeter control as well.
+      defaultAction: 'Allow'  // Production readiness change: This sample uses identity as the perimeter. Production scenarios should layer in network perimeter control as well.
       bypass: 'AzureServices' // Required for AppGW communication if firewall is enabled in the future.
     }
 
@@ -60,14 +63,6 @@ resource keyVaultDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-
         }
     ]
     logAnalyticsDestinationType: null
-  }
-}
-
-resource apiKeySecret 'Microsoft.KeyVault/vaults/secrets@2023-02-01' = {
-  parent: keyVault
-  name: 'apiKey'
-  properties: {
-    value: apiKey
   }
 }
 

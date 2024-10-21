@@ -4,12 +4,13 @@
 
 @description('This is the base name for each Azure resource name (6-8 chars)')
 @minLength(6)
+@maxLength(8)
 param baseName string
 
 @description('The resource group location')
 param location string = resourceGroup().location
 
-// existing resource name params 
+// existing resource name params
 param keyVaultName string
 param logWorkspaceName string
 
@@ -67,7 +68,7 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
   name: 'asp-${appName}${uniqueString(resourceGroup().id)}'
   location: location
   sku: {
-    name: 'S1'
+    name: 'B2'
     capacity: 1
   }
   properties: {

@@ -257,7 +257,6 @@ resource chatProject 'Microsoft.MachineLearningServices/workspaces@2024-04-01' =
 
     // TODO: Noticed that traffic goes back to 0% if this is template redeployed after the Prompt flow
     // deplopyment is complete. How can we stop that?
-    // TODO: Verify that traffic goes to 100% on initial deploy (I think it does, but need to be sure)
   }
 }
 

@@ -138,13 +138,13 @@ To test this architecture, you'll be deploying a pre-built Prompt flow. The Prom
 
    This copies a starter Prompt flow template into your Azure Files storage account. This action is performed by the managed identity of the project. After the files are copied, then you're directed to a Prompt flow editor. That editor experience uses your own identity for access to Azure Files.
 
-1. Connect the the `extract_query_from_question` Prompt flow step to your Azure OpenAI model deployment.
+1. Connect the `extract_query_from_question` Prompt flow step to your Azure OpenAI model deployment.
 
       - For **Connection**, select 'aoai' from the dropdown menu. This is your deployed Azure OpenAI instance.
       - For **deployment_name**, select 'gpt35' from the dropdown menu. This is the model you've deployed in that Azure OpenAI instance.
       - For **response_format**, select '{"type":"text"}' from the dropdown menu
 
-1. Connect the the `augmented_chat` Prompt flow step to your Azure OpenAI model deployment.
+1. Connect the `augmented_chat` Prompt flow step to your Azure OpenAI model deployment.
 
       - For **Connection**, select the same 'aoai' from the dropdown menu.
       - For **deployment_name**, select the same 'gpt35' from the dropdown menu.

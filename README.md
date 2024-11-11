@@ -71,6 +71,8 @@ Follow these instructions to deploy this example to your Azure subscription, try
 
 - The [Azure CLI installed](https://learn.microsoft.com/cli/azure/install-azure-cli)
 
+  If you're executing this from WSL, be sure the Azure CLI is installed in WSL and is not using the version installed in Windows. `which az` should show `/usr/bin/az`.
+
 - The [az Bicep tools installed](https://learn.microsoft.com/azure/azure-resource-manager/bicep/install)
 
 ### 1. :rocket: Deploy the infrastructure

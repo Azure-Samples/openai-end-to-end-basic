@@ -23,7 +23,7 @@ resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' exis
 }
 
 // ---- Storage resources ----
-resource aiStudioStorageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
+resource aiStudioStorageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' = {
   name: aiStudioStorageAccountName
   location: location
   sku: {
@@ -31,6 +31,7 @@ resource aiStudioStorageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' =
   }
   kind: 'StorageV2'
   properties: {
+    allowedCopyScope: 'AAD'
     accessTier: 'Hot'
     allowBlobPublicAccess: true
     allowSharedKeyAccess: true
@@ -44,6 +45,14 @@ resource aiStudioStorageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' =
           keyType: 'Account'
         }
         file: {
+          enabled: true
+          keyType: 'Account'
+        }
+        queue: {
+          enabled: true
+          keyType: 'Account'
+        }
+        table: {
           enabled: true
           keyType: 'Account'
         }

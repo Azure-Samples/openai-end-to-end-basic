@@ -1,5 +1,5 @@
 /*
-  Deploy Azure AI Studio hub, projects, and a managed online endpoint
+  Deploy Azure AI Foundry hub, projects, and a managed online endpoint
 */
 
 @description('This is the base name for each Azure resource name (6-8 chars)')
@@ -74,39 +74,39 @@ resource amlWorkspaceSecretsReaderRole 'Microsoft.Authorization/roleDefinitions@
 
 // ---- Required permissions for the machine learning UI and hosting components ---- //
 
-// This architecture uses system managed identity for Azure AI Studio (Hub), Azure AI Studio projects, and for the managed
+// This architecture uses system managed identity for Azure AI Foundry (hub & projects), and for the managed
 // online endpoint. Because they are system managed identities, when those resources are deployed, the necessary role
 // assignments are automatically created. If you choose to use user-assigned managed identities, you will need to create the
 // following role assignments with the managed identities.
 
-// Azure AI Studio -> Contributor on parent resource group
-// Azure AI Studio -> AI Administrator on self
-// Azure AI Studio -> Storage Blob Data Contributor to the storage account
-// Azure AI Studio -> Storage File Data Privileged Contributor to the storage account
-// Azure AI Studio -> Key Vault Administrator to the Key Vault
+// Azure AI Foundry -> Contributor on parent resource group
+// Azure AI Foundry -> AI Administrator on self
+// Azure AI Foundry -> Storage Blob Data Contributor to the storage account
+// Azure AI Foundry -> Storage File Data Privileged Contributor to the storage account
+// Azure AI Foundry -> Key Vault Administrator to the Key Vault
 
 // Each project created needs its own identities assigned similarly.
 
-// Azure AI Studio Project -> Reader to the storage account
-// Azure AI Studio Project -> Storage Account Contributor to the storage account
-// Azure AI Studio Project -> Storage Blob Data Contributor to the storage account
-// Azure AI Studio Project -> Storage File Data Privileged Contributor to the storage account
-// Azure AI Studio Project -> Storage Table Data Contributor to the storage account
-// Azure AI Studio Project -> Key Vault Administrator to the Key Vault
-// Azure AI Studio Project -> Contributor to the Container Registry
-// Azure AI Studio Project -> Contributor to Application Insights
+// Azure AI Foundry project -> Reader to the storage account
+// Azure AI Foundry project -> Storage Account Contributor to the storage account
+// Azure AI Foundry project -> Storage Blob Data Contributor to the storage account
+// Azure AI Foundry project -> Storage File Data Privileged Contributor to the storage account
+// Azure AI Foundry project -> Storage Table Data Contributor to the storage account
+// Azure AI Foundry project -> Key Vault Administrator to the Key Vault
+// Azure AI Foundry project -> Contributor to the Container Registry
+// Azure AI Foundry project -> Contributor to Application Insights
 
 // Each deployment under the project needs its own identities assigned as such.
 
-// Endpoint -> AzureML Metrics Writer to the Azure AI Studio Project
-// Endpoint -> AzureML Machine Learning Workspace Connection Secrets Reader to the Azure AI Studio Project
+// Endpoint -> AzureML Metrics Writer to the Azure AI Foundry project
+// Endpoint -> AzureML Machine Learning Workspace Connection Secrets Reader to the Azure AI Foundry project
 // Endpoint -> AcrPull to the Container Registry
 // Endpoint -> Storage Blob Data Contributor to the storage account
 
 // To light up the Azure AI portal experience, the user themsleves need a few data plane permissions. To simulate that for this implementation
 // we will assign the user that is running this deployment the following three roles:
 
-@description('Assign your user the ability to manage files in storage. This is needed to use the Prompt flow editor in Azure AI Studio.')
+@description('Assign your user the ability to manage files in storage. This is needed to use the Prompt flow editor in the Azure AI Foundry portal.')
 resource storageFileDataContributorForUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: aiStudioStorageAccount
   name: guid(aiStudioStorageAccount.id, yourPrincipalId, storageFileDataContributorRole.id)
@@ -118,7 +118,7 @@ resource storageFileDataContributorForUserRoleAssignment 'Microsoft.Authorizatio
   }
 }
 
-@description('Assign your user the ability to manage Prompt flow state files from blob storage. This is needed to execute the Prompt flow from within in Azure AI Studio.')
+@description('Assign your user the ability to manage Prompt flow state files from blob storage. This is needed to execute the Prompt flow from within in the Azure AI Foundry portal.')
 resource blobStorageContributorForUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: aiStudioStorageAccount
   name: guid(aiStudioStorageAccount.id, yourPrincipalId, storageBlobDataContributorRole.id)
@@ -132,7 +132,7 @@ resource blobStorageContributorForUserRoleAssignment 'Microsoft.Authorization/ro
   }
 }
 
-@description('Assign your user the ability to invoke models in Azure OpenAI. This is needed to execute the Prompt flow from within in Azure AI Studio.')
+@description('Assign your user the ability to invoke models in Azure OpenAI. This is needed to execute the Prompt flow from within in the Azure AI Foundry portal.')
 resource cognitiveServicesOpenAiUserForUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: openAiAccount
   name: guid(openAiAccount.id, yourPrincipalId, cognitiveServicesOpenAiUserRole.id)
@@ -201,7 +201,7 @@ resource aiHub 'Microsoft.MachineLearningServices/workspaces@2024-07-01-preview'
   }
 }
 
-@description('Azure Diagnostics: Azure AI Studio Hub - allLogs')
+@description('Azure Diagnostics: Azure AI Foundry hub - allLogs')
 resource aiHubDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: 'default'
   scope: aiHub
@@ -285,7 +285,7 @@ resource projectOpenAIUserForOnlineEndpointRoleAssignment 'Microsoft.Authorizati
   }
 }
 
-@description('Azure Diagnostics: AI Studio chat project - allLogs')
+@description('Azure Diagnostics: AI Foundry chat project - allLogs')
 resource chatProjectDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: 'default'
   scope: chatProject
@@ -305,7 +305,7 @@ resource chatProjectDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-
 }
 
 
-@description('Azure Diagnostics: AI Studio chat project -> endpoint allLogs')
+@description('Azure Diagnostics: AI Foundry chat project -> endpoint allLogs')
 resource chatProjectEndpointDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: 'default'
   scope: chatProject::endpoint

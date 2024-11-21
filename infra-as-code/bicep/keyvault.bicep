@@ -1,5 +1,5 @@
 /*
-  Deploy Key Vault. Key Vault is a required dependency for Azure AI Studio hubs and projects. Both resources keep their
+  Deploy Key Vault. Key Vault is a required dependency for Azure AI Foundry hubs and projects. Both resources keep their
   API keys and connection secrets in here.
 */
 

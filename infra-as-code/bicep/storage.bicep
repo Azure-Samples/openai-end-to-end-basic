@@ -1,6 +1,6 @@
 /*
-  Deploy storage account that will be connected to Azure AI Studio. It is used by
-  Azure AI Studio to store Prompt flow files, traces, and other assets.
+  Deploy storage account that will be connected to Azure AI Foundry. It is used by
+  Azure AI Foundry to store Prompt flow files, traces, and other assets.
 */
 
 @description('This is the base name for each Azure resource name (6-8 chars)')
@@ -73,7 +73,7 @@ resource aiStudioStorageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' =
   }
 }
 
-@description('Azure AI Studio\'s blob storage account diagnostic settings.')
+@description('Azure AI Foundry\'s blob storage account diagnostic settings.')
 resource aiStudioStorageAccountBlobDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: '${aiStudioStorageAccount.name}-blobdiagnosticSettings'
   scope: aiStudioStorageAccount::Blob
@@ -93,7 +93,7 @@ resource aiStudioStorageAccountBlobDiagSettings 'Microsoft.Insights/diagnosticSe
   }
 }
 
-@description('Azure AI Studio\'s file storage account diagnostic settings.')
+@description('Azure AI Foundry\'s file storage account diagnostic settings.')
 resource aiStudioStorageAccountFileDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: '${aiStudioStorageAccount.name}-filediagnosticSettings'
   scope: aiStudioStorageAccount::File

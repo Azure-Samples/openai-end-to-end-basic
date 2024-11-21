@@ -2,7 +2,7 @@
 
 This reference implementation illustrates a basic approach for authoring and running a chat application in a single region with Prompt flow and Azure OpenAI. This reference implementation supports the [Basic Azure OpenAI end-to-end chat reference architecture](https://learn.microsoft.com/azure/architecture/ai-ml/architecture/basic-openai-e2e-chat).
 
-The implementation will have you build and test a [Prompt flow](https://microsoft.github.io/promptflow/) in Azure AI Studio and deploy the flow to an Azure Machine Learning online managed endpoint. You'll be exposed to common generative AI chat application characteristics such as:
+The implementation will have you build and test a [Prompt flow](https://microsoft.github.io/promptflow/) in the Azure AI Foundry portal and deploy the flow to an Azure Machine Learning online managed endpoint. You'll be exposed to common generative AI chat application characteristics such as:
 
 - Creating prompts
 - Querying data stores for grounding data
@@ -15,25 +15,25 @@ The reference implementation illustrates a basic example of a chat application. 
 
 The implementation covers the following scenarios:
 
-1. Authoring a flow - Authoring a flow using Prompt flow in Azure AI Studio
+1. Authoring a flow - Authoring a flow using Prompt flow in Azure AI Foundry
 1. Deploying a flow - The client UI is hosted in Azure App Service and accesses the Azure OpenAI Service via a Managed online endpoint.
 
 ### Deploying a flow to Azure Machine Learning managed online endpoint
 
-![Diagram of the architecture for deploying a flow to Azure Machine Learning managed online endpoint hosted in Azure AI Studio. It shows an App Service hosting a sample application fronting an Azure AI Studio project with associated connections and services.](docs/media/openai-end-to-end-basic.png)
+![Diagram of the architecture for deploying a flow to Azure Machine Learning managed online endpoint hosted in Azure AI Foundry. It shows an App Service hosting a sample application fronting an Azure AI Foundry project with associated connections and services.](docs/media/openai-end-to-end-basic.png)
 
 The architecture diagram illustrates how a front-end web application connects to a managed online endpoint hosting the Prompt flow logic.
 
-### :recycle: Transitioning to Azure AI Studio
+### :recycle: Transitioning to Azure AI Foundry
 
-Azure patterns & practices team is transitioning this and related content from Azure Machine Learning workspaces to Azure AI Studio hub + projects. During ths transition period some of the assets might be out of sync with each other technology wise. Architecturally, these two technologies are very similar to each other, even down to the resource provider level. Pardon our dust as we make this transition across the assets. Here is the current status.
+Azure patterns & practices team is transitioning this and related content from Azure Machine Learning workspaces to Azure AI Foundry hub + projects. During ths transition period some of the assets might be out of sync with each other technology wise. Architecturally, these two technologies are very similar to each other, even down to the resource provider level. Pardon our dust as we make this transition across the assets. Here is the current status.
 
 | Asset | Workspace |
 | :---- | :-------- |
-| Basic implementation *(this repo)* | :ballot_box_with_check: AI Studio project |
-| [Basic architecture on Microsoft Learn](https://learn.microsoft.com/azure/architecture/ai-ml/architecture/basic-openai-e2e-chat) | :ballot_box_with_check: AI Studio project |
-| [Baseline implementation](https://github.com/Azure-Samples/openai-end-to-end-baseline)  | :ballot_box_with_check: AI Studio project |
-| [Baseline architecture on Microsoft Learn](https://learn.microsoft.com/azure/architecture/ai-ml/architecture/baseline-openai-e2e-chat) | :ballot_box_with_check: AI Studio project |
+| Basic implementation *(this repo)* | :ballot_box_with_check: AI Foundry project |
+| [Basic architecture on Microsoft Learn](https://learn.microsoft.com/azure/architecture/ai-ml/architecture/basic-openai-e2e-chat) | :ballot_box_with_check: AI Foundry project |
+| [Baseline implementation](https://github.com/Azure-Samples/openai-end-to-end-baseline)  | :ballot_box_with_check: AI Foundry project |
+| [Baseline architecture on Microsoft Learn](https://learn.microsoft.com/azure/architecture/ai-ml/architecture/baseline-openai-e2e-chat) | :ballot_box_with_check: AI Foundry project |
 | [Azure landing zone implementation](https://github.com/Azure-Samples/azure-openai-chat-baseline-landing-zone) | :white_square_button: AML workspace |
 | [Azure landing zone architecture on Microsoft Learn](https://learn.microsoft.com/azure/architecture/ai-ml/architecture/azure-openai-baseline-landing-zone) | :white_square_button: AML workspace |
 
@@ -122,11 +122,11 @@ The following steps are required to deploy the infrastructure from the command l
      -p yourPrincipalId=$PRINCIPAL_ID
    ```
 
-### 2. Deploy a Prompt flow from Azure AI Studio
+### 2. Deploy a Prompt flow from Azure AI Foundry portal
 
 To test this architecture, you'll be deploying a pre-built Prompt flow. The Prompt flow is "Chat with Wikipedia" which adds a Wikipedia search as grounding data.
 
-1. Open Azure AI Studio's projects by going to <https://ai.azure.com/allProjects>.
+1. Open Azure AI Foundry's projects by going to <https://ai.azure.com/allProjects>.
 
 1. Click on the 'Chat with Wikipedia project' project name. This is the project where you'll deploy your flow.
 
@@ -163,9 +163,9 @@ To test this architecture, you'll be deploying a pre-built Prompt flow. The Prom
 
 1. Click **Save** on the flow.
 
-### 3. Test the Prompt flow from Azure AI Studio
+### 3. Test the Prompt flow from the Azure AI Foundry portal
 
-Here you'll test your flow by invoking it directly from the Azure AI Studio. The flow still requires you to bring compute to execute it from. The compute you'll use when in the portal is the default *Serverless* offering, which is only used for portal-based Prompt flow experiences. The interactions against Azure OpenAI are performed by your identity; the bicep template has already granted your user data plane access.
+Here you'll test your flow by invoking it directly from the Azure AI Foundry portal. The flow still requires you to bring compute to execute it from. The compute you'll use when in the portal is the default *Serverless* offering, which is only used for portal-based Prompt flow experiences. The interactions against Azure OpenAI are performed by your identity; the bicep template has already granted your user data plane access.
 
 1. Click **Start compute session**.
 
@@ -219,7 +219,7 @@ Here you'll take your tested flow and deploy it to a managed online endpoint.
 
    *Do not advance until this deployment is complete.*
 
-### 5. Test the deployed Prompt flow from Azure AI Studio
+### 5. Test the deployed Prompt flow from the Azure AI Foundry portal
 
 1. Click on the deployment name, 'ept-chat-deployment'.
 

@@ -75,7 +75,7 @@ module openaiModule 'openai.bicep' = {
   }
 }
 
-// Deploy Azure AI Studio hub, projects, and managed online endpoints.
+// Deploy Azure AI Foundry hub, projects, and managed online endpoints.
 module aiStudio 'machinelearning.bicep' = {
   name: 'aiStudio'
   params: {

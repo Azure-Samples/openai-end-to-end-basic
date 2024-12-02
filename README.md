@@ -139,15 +139,6 @@ To test this architecture, you'll be deploying a pre-built Prompt flow. The Prom
       - For **deployment_name**, select the same 'gpt35' from the dropdown menu.
       - For **response_format**, also select '{"type":"text"}' from the dropdown menu.
 
-1. Work around a telemetry issue that results in an error at the point of inferencing.
-
-   At the time of this writing, there is a Prompt flow + OpenTelemetry related [bug](https://github.com/microsoft/promptflow/issues/3751) that manifests itself after the Prompt flow is deployed to a managed online endpoint. Proper requests to the `/score` endpoint result in an error response of `unsupported operand type(s) for +: 'NoneType' and 'NoneType'`. To correct that, perform the following steps.
-
-   1. Open the **Files** view.
-   1. Select 'requirements.txt'.
-   1. The file should be empty, add one line containing just `promptflow-tracing>=1.16.1`.
-   1. Click **Save only** and close the file.
-
 1. Click **Save** on the flow.
 
 ### 3. Test the Prompt flow from the Azure AI Foundry portal

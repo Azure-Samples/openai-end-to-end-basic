@@ -43,6 +43,7 @@ Follow these instructions to deploy this example to your Azure subscription, try
     - `Microsoft.ManagedIdentity`
     - `Microsoft.OperationalInsights`
     - `Microsoft.Storage`
+    - `Microsoft.PolicyInsights`
 
   - The subscription selected must have the following quota available in the location you'll select to deploy this implementation.
 

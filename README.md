@@ -42,6 +42,7 @@ Follow these instructions to deploy this example to your Azure subscription, try
     - `Microsoft.MachineLearningServices`
     - `Microsoft.ManagedIdentity`
     - `Microsoft.OperationalInsights`
+    - `Microsoft.PolicyInsights`
     - `Microsoft.Storage`
 
   - The subscription selected must have the following quota available in the location you'll select to deploy this implementation.

@@ -23,7 +23,7 @@ resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' exis
   name: logWorkspaceName
 }
 
-// Built-in Azure RBAC role that is applied to a Key Vault to grant secrets content read permissions. 
+// Built-in Azure RBAC role that is applied to a Key Vault to grant secrets content read permissions.
 resource keyVaultSecretsUserRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
   name: '4633458b-17de-408a-b874-0445c86b69e6'
   scope: subscription()

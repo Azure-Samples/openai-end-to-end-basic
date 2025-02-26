@@ -22,7 +22,7 @@ resource openAiAccount 'Microsoft.CognitiveServices/accounts@2023-10-01-preview'
   kind: 'OpenAI'
   properties: {
     customSubDomainName: 'oai-${baseName}'
-    publicNetworkAccess: 'Enabled'  // Production readiness change: This sample uses identity as the perimeter. Production scenarios should layer in network perimeter control as well.
+    publicNetworkAccess: 'Enabled' // Production readiness change: This sample uses identity as the perimeter. Production scenarios should layer in network perimeter control as well.
     disableLocalAuth: true
   }
   sku: {

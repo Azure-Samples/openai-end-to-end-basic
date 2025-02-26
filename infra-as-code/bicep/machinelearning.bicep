@@ -10,7 +10,7 @@ param baseName string
 @description('The resource group location')
 param location string = resourceGroup().location
 
-// existing resource name params 
+// existing resource name params
 param applicationInsightsName string
 param containerRegistryName string
 param keyVaultName string
@@ -153,17 +153,17 @@ resource aiHub 'Microsoft.MachineLearningServices/workspaces@2024-07-01-preview'
     tier: 'Basic'
   }
   identity: {
-    type: 'SystemAssigned'  // This resource's identity is automatically assigned priviledge access to ACR, Storage, Key Vault, and Application Insights.
+    type: 'SystemAssigned' // This resource's identity is automatically assigned priviledge access to ACR, Storage, Key Vault, and Application Insights.
   }
   properties: {
     friendlyName: 'Azure OpenAI Chat Hub'
     description: 'Hub to support the Microsoft Learn Azure OpenAI basic chat implementation. https://learn.microsoft.com/azure/architecture/ai-ml/architecture/basic-openai-e2e-chat'
-    publicNetworkAccess: 'Enabled'  // Production readiness change: The "Baseline" architecture adds ingress and egress network control over this "Basic" implementation.
+    publicNetworkAccess: 'Enabled' // Production readiness change: The "Baseline" architecture adds ingress and egress network control over this "Basic" implementation.
     ipAllowlist: []
     serverlessComputeSettings: null
     enableServiceSideCMKEncryption: false
     managedNetwork: {
-      isolationMode: 'Disabled'  // Production readiness change: The "Baseline" architecture adds ingress and egress network control over this "Basic" implementation.
+      isolationMode: 'Disabled' // Production readiness change: The "Baseline" architecture adds ingress and egress network control over this "Basic" implementation.
     }
     allowRoleAssignmentOnRG: false // Require role assignments at the resource level.
     v1LegacyMode: false
@@ -221,7 +221,7 @@ resource aiHubDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-pre
 }
 
 // ---- Chat project ----
- 
+
 @description('This is a container for the chat project.')
 resource chatProject 'Microsoft.MachineLearningServices/workspaces@2024-04-01' = {
   name: 'aiproj-chat'
@@ -232,7 +232,7 @@ resource chatProject 'Microsoft.MachineLearningServices/workspaces@2024-04-01' =
     tier: 'Basic'
   }
   identity: {
-    type: 'SystemAssigned'  // This resource's identity is automatically assigned priviledge access to ACR, Storage, Key Vault, and Application Insights.
+    type: 'SystemAssigned' // This resource's identity is automatically assigned priviledge access to ACR, Storage, Key Vault, and Application Insights.
   }
   properties: {
     friendlyName: 'Chat with Wikipedia project'
@@ -293,7 +293,7 @@ resource chatProjectDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-
     workspaceId: logWorkspace.id
     logs: [
       {
-        categoryGroup: 'allLogs'  // Production readiness change: In production, this is probably excessive. Please tune to just the log streams that add value to your workload's operations.
+        categoryGroup: 'allLogs' // Production readiness change: In production, this is probably excessive. Please tune to just the log streams that add value to your workload's operations.
         enabled: true
         retentionPolicy: {
           enabled: false

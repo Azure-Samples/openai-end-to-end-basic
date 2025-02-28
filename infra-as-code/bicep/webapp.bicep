@@ -19,17 +19,17 @@ var appName = 'app-${baseName}'
 
 // ---- Existing resources ----
 
-resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = {
+resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' existing = {
   name: logWorkspaceName
 }
 
 // Built-in Azure RBAC role that is applied to a Key Vault to grant secrets content read permissions.
-resource keyVaultSecretsUserRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+resource keyVaultSecretsUserRole 'Microsoft.Authorization/roleDefinitions@2022-05-01-preview' existing = {
   name: '4633458b-17de-408a-b874-0445c86b69e6'
   scope: subscription()
 }
 
-resource chatProject 'Microsoft.MachineLearningServices/workspaces@2024-07-01-preview' existing = {
+resource chatProject 'Microsoft.MachineLearningServices/workspaces@2024-10-01' existing = {
   name: 'aiproj-chat'
 
   resource scoreEndpoint 'onlineEndpoints' existing = {
@@ -37,7 +37,7 @@ resource chatProject 'Microsoft.MachineLearningServices/workspaces@2024-07-01-pr
   }
 }
 
-resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' existing = {
+resource keyVault 'Microsoft.KeyVault/vaults@2024-04-01-preview' existing = {
   name: keyVaultName
 
   resource chatApiKey 'secrets' existing = {
@@ -48,7 +48,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' existing = {
 // ---- Web App resources ----
 
 // Managed Identity for App Service
-resource appServiceManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+resource appServiceManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-07-31-preview' = {
   name: 'id-${appName}'
   location: location
 }
@@ -64,7 +64,7 @@ module appServiceSecretsUserRoleAssignmentModule './modules/keyvaultRoleAssignme
 }
 
 // App service plan
-resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
+resource appServicePlan 'Microsoft.Web/serverfarms@2024-04-01' = {
   name: 'asp-${appName}${uniqueString(resourceGroup().id)}'
   location: location
   sku: {
@@ -79,7 +79,7 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
 }
 
 // Web App
-resource webApp 'Microsoft.Web/sites@2023-12-01' = {
+resource webApp 'Microsoft.Web/sites@2024-04-01' = {
   name: appName
   location: location
   kind: 'app'
@@ -110,7 +110,7 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
 }
 
 // App Settings
-resource appsettings 'Microsoft.Web/sites/config@2022-09-01' = {
+resource appsettings 'Microsoft.Web/sites/config@2024-04-01' = {
   name: 'appsettings'
   parent: webApp
   properties: {

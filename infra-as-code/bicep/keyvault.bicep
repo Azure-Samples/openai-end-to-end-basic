@@ -17,11 +17,11 @@ param logWorkspaceName string
 //variables
 var keyVaultName = 'kv-${baseName}'
 
-resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = {
+resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' existing = {
   name: logWorkspaceName
 }
 
-resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
+resource keyVault 'Microsoft.KeyVault/vaults@2024-04-01-preview' = {
   name: keyVaultName
   location: location
   properties: {
@@ -30,19 +30,19 @@ resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
       name: 'standard'
     }
     networkAcls: {
-      defaultAction: 'Allow'  // Production readiness change: This sample uses identity as the perimeter. Production scenarios should layer in network perimeter control as well.
+      defaultAction: 'Allow' // Production readiness change: This sample uses identity as the perimeter. Production scenarios should layer in network perimeter control as well.
       bypass: 'AzureServices' // Required for AppGW communication if firewall is enabled in the future.
     }
 
     tenantId: subscription().tenantId
 
-    enableRbacAuthorization: true      // Using RBAC
-    enabledForDeployment: true         // VMs can retrieve certificates
+    enableRbacAuthorization: true // Using RBAC
+    enabledForDeployment: true // VMs can retrieve certificates
     enabledForTemplateDeployment: true // ARM can retrieve values
 
     enableSoftDelete: true
     softDeleteRetentionInDays: 7
-    createMode: 'default'              // Creating or updating the key vault (not recovering)
+    createMode: 'default' // Creating or updating the key vault (not recovering)
   }
 }
 

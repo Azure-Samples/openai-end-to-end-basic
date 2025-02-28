@@ -12,7 +12,7 @@ param baseName string
 param yourPrincipalId string
 
 // ---- Log Analytics workspace ----
-resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
+resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
   name: 'log-${baseName}'
   location: location
   properties: {
@@ -47,7 +47,7 @@ module keyVaultModule 'keyvault.bicep' = {
 
 // Deploy Azure Container Registry
 module acrModule 'acr.bicep' = {
-  name: 'acrDeploy'
+  name: 'acrDeploy-${uniqueString(deployment().name)}'
   params: {
     location: location
     baseName: baseName

@@ -24,7 +24,7 @@ param yourPrincipalId string
 
 // ---- Existing resources ----
 
-resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = {
+resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' existing = {
   name: logWorkspaceName
 }
 
@@ -32,7 +32,7 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing
   name: applicationInsightsName
 }
 
-resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-08-01-preview' existing = {
+resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-11-01-preview' existing = {
   name: containerRegistryName
 }
 
@@ -40,11 +40,11 @@ resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' existing = {
   name: keyVaultName
 }
 
-resource aiStudioStorageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
+resource aiStudioStorageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' existing = {
   name: aiStudioStorageAccountName
 }
 
-resource openAiAccount 'Microsoft.CognitiveServices/accounts@2023-05-01' existing = {
+resource openAiAccount 'Microsoft.CognitiveServices/accounts@2024-10-01' existing = {
   name: openAiResourceName
 }
 
@@ -113,8 +113,8 @@ resource storageFileDataContributorForUserRoleAssignment 'Microsoft.Authorizatio
   properties: {
     roleDefinitionId: storageFileDataContributorRole.id
     principalType: 'User'
-    principalId: yourPrincipalId  // Production readiness change: Users shouldn't be using the Prompt flow developer portal in production, so this role
-                                  // assignment would only be needed in pre-production environments.
+    principalId: yourPrincipalId // Production readiness change: Users shouldn't be using the Prompt flow developer portal in production, so this role
+    // assignment would only be needed in pre-production environments.
   }
 }
 
@@ -125,10 +125,9 @@ resource blobStorageContributorForUserRoleAssignment 'Microsoft.Authorization/ro
   properties: {
     roleDefinitionId: storageBlobDataContributorRole.id
     principalType: 'User'
-    principalId: yourPrincipalId  // Production readiness change: Users shouldn't be using the Prompt flow developer portal in production, so this role
-                                  // assignment would only be needed in pre-production environments. In pre-production, use conditions on this assignment
-                                  // to restrict access to just the blob containers used by the project.
-
+    principalId: yourPrincipalId // Production readiness change: Users shouldn't be using the Prompt flow developer portal in production, so this role
+    // assignment would only be needed in pre-production environments. In pre-production, use conditions on this assignment
+    // to restrict access to just the blob containers used by the project.
   }
 }
 
@@ -144,7 +143,7 @@ resource cognitiveServicesOpenAiUserForUserRoleAssignment 'Microsoft.Authorizati
 }
 
 @description('A hub provides the hosting environment for this AI workload. It provides security, governance controls, and shared configurations.')
-resource aiHub 'Microsoft.MachineLearningServices/workspaces@2024-07-01-preview' = {
+resource aiHub 'Microsoft.MachineLearningServices/workspaces@2024-10-01' = {
   name: 'aihub-${baseName}'
   location: location
   kind: 'Hub'
@@ -159,28 +158,22 @@ resource aiHub 'Microsoft.MachineLearningServices/workspaces@2024-07-01-preview'
     friendlyName: 'Azure OpenAI Chat Hub'
     description: 'Hub to support the Microsoft Learn Azure OpenAI basic chat implementation. https://learn.microsoft.com/azure/architecture/ai-ml/architecture/basic-openai-e2e-chat'
     publicNetworkAccess: 'Enabled' // Production readiness change: The "Baseline" architecture adds ingress and egress network control over this "Basic" implementation.
-    ipAllowlist: []
-    serverlessComputeSettings: null
-    enableServiceSideCMKEncryption: false
     managedNetwork: {
-      isolationMode: 'Disabled' // Production readiness change: The "Baseline" architecture adds ingress and egress network control over this "Basic" implementation.
+      isolationMode: 'Disabled'
     }
-    allowRoleAssignmentOnRG: false // Require role assignments at the resource level.
     v1LegacyMode: false
     workspaceHubConfig: {
-      defaultWorkspaceResourceGroup: resourceGroup().id  // Setting this to the same resource group as the workspace
+      defaultWorkspaceResourceGroup: resourceGroup().id // Setting this to the same resource group as the workspace
     }
 
     // Default settings for projects
     storageAccount: aiStudioStorageAccount.id
     containerRegistry: containerRegistry.id
-    systemDatastoresAuthMode: 'identity'
-    enableSoftwareBillOfMaterials: true
     enableDataIsolation: true
     keyVault: keyVault.id
-    applicationInsights: applicationInsights.id
     hbiWorkspace: false
-    imageBuildCompute: null
+    applicationInsights: applicationInsights.id
+    discoveryUrl: 'https://${location}.api.azureml.ms/discovery'
   }
 
   resource aoaiConnection 'connections' = {
@@ -189,12 +182,11 @@ resource aiHub 'Microsoft.MachineLearningServices/workspaces@2024-07-01-preview'
       authType: 'AAD'
       category: 'AzureOpenAI'
       isSharedToAll: true
-      useWorkspaceManagedIdentity: true
-      peRequirement: 'NotRequired'
       sharedUserList: []
       metadata: {
         ApiType: 'Azure'
         ResourceId: openAiAccount.id
+        location: location
       }
       target: openAiAccount.properties.endpoint
     }
@@ -223,7 +215,7 @@ resource aiHubDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-pre
 // ---- Chat project ----
 
 @description('This is a container for the chat project.')
-resource chatProject 'Microsoft.MachineLearningServices/workspaces@2024-04-01' = {
+resource chatProject 'Microsoft.MachineLearningServices/workspaces@2024-10-01' = {
   name: 'aiproj-chat'
   location: location
   kind: 'Project'
@@ -304,7 +296,6 @@ resource chatProjectDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-
   }
 }
 
-
 @description('Azure Diagnostics: AI Foundry chat project -> endpoint allLogs')
 resource chatProjectEndpointDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: 'default'
@@ -330,7 +321,7 @@ resource chatProjectEndpointDiagSettings 'Microsoft.Insights/diagnosticSettings@
 // TODO: Figure out if the key is something that's reliably predictable, if so, just use that instead of creating
 //       a copy of it.
 @description('Key Vault Secret: The Managed Online Endpoint key to be referenced from the Chat UI app.')
-resource managedEndpointPrimaryKeyEntry 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+resource managedEndpointPrimaryKeyEntry 'Microsoft.KeyVault/vaults/secrets@2024-04-01-preview' = {
   parent: keyVault
   name: 'chatApiKey'
   properties: {

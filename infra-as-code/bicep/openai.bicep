@@ -12,11 +12,11 @@ param logWorkspaceName string
 //variables
 var openaiName = 'oai-${baseName}'
 
-resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = {
+resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' existing = {
   name: logWorkspaceName
 }
 
-resource openAiAccount 'Microsoft.CognitiveServices/accounts@2023-10-01-preview' = {
+resource openAiAccount 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
   name: openaiName
   location: location
   kind: 'OpenAI'
@@ -34,7 +34,6 @@ resource openAiAccount 'Microsoft.CognitiveServices/accounts@2023-10-01-preview'
     name: 'blocking-filter'
     properties: {
       #disable-next-line BCP037
-      type: 'UserManaged'
       basePolicyName: 'Microsoft.Default'
       mode: 'Default'
       contentFilters: [
@@ -44,32 +43,32 @@ resource openAiAccount 'Microsoft.CognitiveServices/accounts@2023-10-01-preview'
           name: 'hate'
           blocking: true
           enabled: true
-          allowedContentLevel: 'Low'
           source: 'Prompt'
+          severityThreshold: 'Low'
         }
         {
           #disable-next-line BCP037
           name: 'sexual'
           blocking: true
           enabled: true
-          allowedContentLevel: 'Low'
           source: 'Prompt'
+          severityThreshold: 'Low'
         }
         {
           #disable-next-line BCP037
           name: 'selfharm'
           blocking: true
           enabled: true
-          allowedContentLevel: 'Low'
           source: 'Prompt'
+          severityThreshold: 'Low'
         }
         {
           #disable-next-line BCP037
           name: 'violence'
           blocking: true
           enabled: true
-          allowedContentLevel: 'Low'
           source: 'Prompt'
+          severityThreshold: 'Low'
         }
         {
           #disable-next-line BCP037
@@ -77,6 +76,7 @@ resource openAiAccount 'Microsoft.CognitiveServices/accounts@2023-10-01-preview'
           blocking: true
           enabled: true
           source: 'Prompt'
+          severityThreshold: 'Low'
         }
         {
           #disable-next-line BCP037
@@ -84,6 +84,7 @@ resource openAiAccount 'Microsoft.CognitiveServices/accounts@2023-10-01-preview'
           blocking: true
           enabled: true
           source: 'Prompt'
+          severityThreshold: 'Low'
         }
         /* COMPLETION FILTERS */
         {
@@ -91,32 +92,32 @@ resource openAiAccount 'Microsoft.CognitiveServices/accounts@2023-10-01-preview'
           name: 'hate'
           blocking: true
           enabled: true
-          allowedContentLevel: 'Low'
           source: 'Completion'
+          severityThreshold: 'Low'
         }
         {
           #disable-next-line BCP037
           name: 'sexual'
           blocking: true
           enabled: true
-          allowedContentLevel: 'Low'
           source: 'Completion'
+          severityThreshold: 'Low'
         }
         {
           #disable-next-line BCP037
           name: 'selfharm'
           blocking: true
           enabled: true
-          allowedContentLevel: 'Low'
           source: 'Completion'
+          severityThreshold: 'Low'
         }
         {
           #disable-next-line BCP037
           name: 'violence'
           blocking: true
           enabled: true
-          allowedContentLevel: 'Low'
           source: 'Completion'
+          severityThreshold: 'Low'
         }
         {
           #disable-next-line BCP037
@@ -124,6 +125,7 @@ resource openAiAccount 'Microsoft.CognitiveServices/accounts@2023-10-01-preview'
           blocking: true
           enabled: true
           source: 'Completion'
+          severityThreshold: 'Low'
         }
       ]
     }
@@ -141,7 +143,6 @@ resource openAiAccount 'Microsoft.CognitiveServices/accounts@2023-10-01-preview'
         format: 'OpenAI'
         name: 'gpt-35-turbo'
         version: '0125' // If your selected region doesn't support this version, please change it.
-                        // az cognitiveservices model list -l YOUR_REGION --query "sort([?model.name == 'gpt-35-turbo' && kind == 'OpenAI'].model.version)" -o tsv
       }
       raiPolicyName: openAiAccount::blockingFilter.name
       versionUpgradeOption: 'OnceNewDefaultVersionAvailable' // Production readiness change: Always be explicit about model versions, use 'NoAutoUpgrade' to prevent version changes.

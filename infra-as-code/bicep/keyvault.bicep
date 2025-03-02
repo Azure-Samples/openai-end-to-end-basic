@@ -30,20 +30,19 @@ resource keyVault 'Microsoft.KeyVault/vaults@2024-04-01-preview' = {
       name: 'standard'
     }
     networkAcls: {
-      defaultAction: 'Allow'  // Production readiness change: This sample uses identity as the perimeter. Production scenarios should layer in network perimeter control as well.
-
-      bypass: 'AzureServices' // Required for AppGW communication if firewall is enabled in the future.
+      defaultAction: 'Allow'            // Production readiness change: This sample uses identity as the perimeter. Production scenarios should layer in network perimeter control as well.
+      bypass: 'AzureServices'           // Required for AppGW communication if firewall is enabled in the future.
     }
 
     tenantId: subscription().tenantId
 
-    enableRbacAuthorization: true // Using RBAC
-    enabledForDeployment: true // VMs can retrieve certificates
-    enabledForTemplateDeployment: true // ARM can retrieve values
+    enableRbacAuthorization: true       // Using RBAC
+    enabledForDeployment: true          // VMs can retrieve certificates
+    enabledForTemplateDeployment: true  // ARM can retrieve values
 
     enableSoftDelete: true
     softDeleteRetentionInDays: 7
-    createMode: 'default' // Creating or updating the key vault (not recovering)
+    createMode: 'default'               // Creating or updating the key vault (not recovering)
   }
 }
 

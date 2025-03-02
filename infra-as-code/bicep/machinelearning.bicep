@@ -113,8 +113,8 @@ resource storageFileDataContributorForUserRoleAssignment 'Microsoft.Authorizatio
   properties: {
     roleDefinitionId: storageFileDataContributorRole.id
     principalType: 'User'
-    principalId: yourPrincipalId // Production readiness change: Users shouldn't be using the Prompt flow developer portal in production, so this role
-    // assignment would only be needed in pre-production environments.
+    principalId: yourPrincipalId  // Production readiness change: Users shouldn't be using the Prompt flow developer portal in production, so this role
+                                  // assignment would only be needed in pre-production environments.
   }
 }
 
@@ -125,9 +125,9 @@ resource blobStorageContributorForUserRoleAssignment 'Microsoft.Authorization/ro
   properties: {
     roleDefinitionId: storageBlobDataContributorRole.id
     principalType: 'User'
-    principalId: yourPrincipalId // Production readiness change: Users shouldn't be using the Prompt flow developer portal in production, so this role
-    // assignment would only be needed in pre-production environments. In pre-production, use conditions on this assignment
-    // to restrict access to just the blob containers used by the project.
+    principalId: yourPrincipalId  // Production readiness change: Users shouldn't be using the Prompt flow developer portal in production, so this role
+                                  // assignment would only be needed in pre-production environments. In pre-production, use conditions on this assignment
+                                  // to restrict access to just the blob containers used by the project.
   }
 }
 
@@ -159,7 +159,7 @@ resource aiHub 'Microsoft.MachineLearningServices/workspaces@2024-10-01' = {
     description: 'Hub to support the Microsoft Learn Azure OpenAI basic chat implementation. https://learn.microsoft.com/azure/architecture/ai-ml/architecture/basic-openai-e2e-chat'
     publicNetworkAccess: 'Enabled' // Production readiness change: The "Baseline" architecture adds ingress and egress network control over this "Basic" implementation.
     managedNetwork: {
-      isolationMode: 'Disabled'
+      isolationMode: 'Disabled' // Production readiness change: The "Baseline" architecture adds ingress and egress network control over this "Basic" implementation.
     }
     v1LegacyMode: false
     workspaceHubConfig: {

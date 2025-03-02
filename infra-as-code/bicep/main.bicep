@@ -47,7 +47,7 @@ module keyVaultModule 'keyvault.bicep' = {
 
 // Deploy Azure Container Registry
 module acrModule 'acr.bicep' = {
-  name: 'acrDeploy-${uniqueString(deployment().name)}'
+  name: 'acrDeploy'
   params: {
     location: location
     baseName: baseName

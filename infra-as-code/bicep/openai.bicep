@@ -22,7 +22,7 @@ resource openAiAccount 'Microsoft.CognitiveServices/accounts@2023-10-01-preview'
   kind: 'OpenAI'
   properties: {
     customSubDomainName: 'oai-${baseName}'
-    publicNetworkAccess: 'Enabled'  // Production readiness change: This sample uses identity as the perimeter. Production scenarios should layer in network perimeter control as well.
+    publicNetworkAccess: 'Enabled' // Production readiness change: This sample uses identity as the perimeter. Production scenarios should layer in network perimeter control as well.
     disableLocalAuth: true
   }
   sku: {
@@ -140,7 +140,8 @@ resource openAiAccount 'Microsoft.CognitiveServices/accounts@2023-10-01-preview'
       model: {
         format: 'OpenAI'
         name: 'gpt-35-turbo'
-        version: '0613' // If your selected region doesn't support this version, please change it.
+        version: '0125' // If your selected region doesn't support this version, please change it.
+                        // az cognitiveservices model list -l YOUR_REGION --query "sort([?model.name == 'gpt-35-turbo' && kind == 'OpenAI'].model.version)" -o tsv
       }
       raiPolicyName: openAiAccount::blockingFilter.name
       versionUpgradeOption: 'OnceNewDefaultVersionAvailable' // Production readiness change: Always be explicit about model versions, use 'NoAutoUpgrade' to prevent version changes.

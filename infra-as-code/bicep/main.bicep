@@ -12,7 +12,7 @@ param baseName string
 param yourPrincipalId string
 
 @description('Set to true to opt-out of deployment telemetry.')
-param parTelemetryOptOut bool = false
+param telemetryOptOut bool = false
 
 // Customer Usage Attribution Id
 var varCuaid = '6aa4564a-a8b7-4ced-8e57-1043a41f4747'

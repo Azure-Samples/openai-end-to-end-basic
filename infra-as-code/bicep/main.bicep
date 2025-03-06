@@ -11,7 +11,7 @@ param baseName string
 @maxLength(36)
 param yourPrincipalId string
 
-@sys.description('Set Parameter to true to Opt-out of deployment telemetry.')
+@description('Set to true to opt-out of deployment telemetry.')
 param parTelemetryOptOut bool = false
 
 // Customer Usage Attribution Id

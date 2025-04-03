@@ -33,7 +33,6 @@ resource openAiAccount 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
   resource blockingFilter 'raiPolicies' = {
     name: 'blocking-filter'
     properties: {
-      #disable-next-line BCP037
       basePolicyName: 'Microsoft.Default'
       mode: 'Default'
       contentFilters: [

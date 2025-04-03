@@ -186,7 +186,6 @@ resource aiHub 'Microsoft.MachineLearningServices/workspaces@2024-10-01' = {
       metadata: {
         ApiType: 'Azure'
         ResourceId: openAiAccount.id
-        location: location
       }
       target: openAiAccount.properties.endpoint
     }

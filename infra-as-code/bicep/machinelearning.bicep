@@ -143,7 +143,7 @@ resource cognitiveServicesOpenAiUserForUserRoleAssignment 'Microsoft.Authorizati
 }
 
 @description('A hub provides the hosting environment for this AI workload. It provides security, governance controls, and shared configurations.')
-resource aiHub 'Microsoft.MachineLearningServices/workspaces@2024-10-01' = {
+resource aiHub 'Microsoft.MachineLearningServices/workspaces@2025-01-01-preview' = {
   name: 'aihub-${baseName}'
   location: location
   kind: 'Hub'
@@ -174,6 +174,8 @@ resource aiHub 'Microsoft.MachineLearningServices/workspaces@2024-10-01' = {
     hbiWorkspace: false
     applicationInsights: applicationInsights.id
     discoveryUrl: 'https://${location}.api.azureml.ms/discovery'
+    systemDatastoresAuthMode: 'Identity'
+    enableSoftwareBillOfMaterials: true
   }
 
   resource aoaiConnection 'connections' = {

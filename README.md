@@ -97,6 +97,8 @@ The following steps are required to deploy the infrastructure from the command l
 
 1. Create a resource group and deploy the infrastructure.
 
+   *There is an optional tracking ID on this deployment. To opt out of its use, add the following parameter to the deployment code below: `-p telemetryOptOut true`.*
+   
    ```bash
    RESOURCE_GROUP=rg-chat-basic-${LOCATION}
    az group create -l $LOCATION -n $RESOURCE_GROUP

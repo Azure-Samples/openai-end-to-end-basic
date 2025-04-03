@@ -11,6 +11,12 @@ param baseName string
 @maxLength(36)
 param yourPrincipalId string
 
+@description('Set to true to opt-out of deployment telemetry.')
+param telemetryOptOut bool = false
+
+// Customer Usage Attribution Id
+var varCuaid = '6aa4564a-a8b7-4ced-8e57-1043a41f4747'
+
 // ---- Log Analytics workspace ----
 resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
   name: 'log-${baseName}'
@@ -103,4 +109,11 @@ module webappModule 'webapp.bicep' = {
   dependsOn: [
     aiStudio
   ]
+}
+
+// Optional Deployment for Customer Usage Attribution
+module customerUsageAttributionModule 'customerUsageAttribution/cuaIdResourceGroup.bicep' = if (!telemetryOptOut) {
+  #disable-next-line no-loc-expr-outside-params // Only to ensure telemetry data is stored in same location as deployment. See https://github.com/Azure/ALZ-Bicep/wiki/FAQ#why-are-some-linter-rules-disabled-via-the-disable-next-line-bicep-function for more information
+  name: 'pid-${varCuaid}-${uniqueString(resourceGroup().location)}'
+  params: {}
 }

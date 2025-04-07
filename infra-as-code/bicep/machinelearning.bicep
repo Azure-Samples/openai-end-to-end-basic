@@ -161,11 +161,11 @@ resource aiHub 'Microsoft.MachineLearningServices/workspaces@2025-01-01-preview'
     managedNetwork: {
       isolationMode: 'Disabled' // Production readiness change: The "Baseline" architecture adds ingress and egress network control over this "Basic" implementation.
     }
+    allowRoleAssignmentOnRG: false // Require role assignments at the resource level.
     v1LegacyMode: false
     workspaceHubConfig: {
       defaultWorkspaceResourceGroup: resourceGroup().id // Setting this to the same resource group as the workspace
     }
-
     // Default settings for projects
     storageAccount: aiStudioStorageAccount.id
     containerRegistry: containerRegistry.id
@@ -173,7 +173,6 @@ resource aiHub 'Microsoft.MachineLearningServices/workspaces@2025-01-01-preview'
     keyVault: keyVault.id
     hbiWorkspace: false
     applicationInsights: applicationInsights.id
-    discoveryUrl: 'https://${location}.api.azureml.ms/discovery'
     systemDatastoresAuthMode: 'Identity'
     enableSoftwareBillOfMaterials: true
   }

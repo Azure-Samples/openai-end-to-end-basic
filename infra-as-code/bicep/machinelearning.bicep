@@ -158,6 +158,9 @@ resource aiHub 'Microsoft.MachineLearningServices/workspaces@2025-01-01-preview'
     friendlyName: 'Azure OpenAI Chat Hub'
     description: 'Hub to support the Microsoft Learn Azure OpenAI basic chat implementation. https://learn.microsoft.com/azure/architecture/ai-ml/architecture/basic-openai-e2e-chat'
     publicNetworkAccess: 'Enabled' // Production readiness change: The "Baseline" architecture adds ingress and egress network control over this "Basic" implementation.
+    ipAllowlist: []
+    serverlessComputeSettings: null
+    enableServiceSideCMKEncryption: false
     managedNetwork: {
       isolationMode: 'Disabled' // Production readiness change: The "Baseline" architecture adds ingress and egress network control over this "Basic" implementation.
     }
@@ -183,6 +186,8 @@ resource aiHub 'Microsoft.MachineLearningServices/workspaces@2025-01-01-preview'
       authType: 'AAD'
       category: 'AzureOpenAI'
       isSharedToAll: true
+      useWorkspaceManagedIdentity: true
+      peRequirement: 'NotRequired'
       sharedUserList: []
       metadata: {
         ApiType: 'Azure'

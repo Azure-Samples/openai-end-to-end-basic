@@ -45,25 +45,26 @@ namespace chatui.Controllers
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
             var response = await client.PostAsync("", content);
-
+            var responseContent = await response.Content.ReadAsStringAsync();
+            
             if (response.IsSuccessStatusCode)
             {
-                var result = await response.Content.ReadAsStringAsync();
-                Console.WriteLine("Result: {0}", result);
+                Console.WriteLine("Result: {0}", responseContent);
 
                 HttpChatGPTResponse oHttpResponse = new()
                 {
                     Success = true,
-                    Data = JsonConvert.DeserializeObject<JObject>(result)[chatOutputName].Value<string>()
+                    Data = JsonConvert.DeserializeObject<JObject>(responseContent)[chatOutputName].Value<string>()
                 };
+
                 return Ok(oHttpResponse);
             }
             else
             {
                 Console.WriteLine(string.Format("The request failed with status code: {0}", response.StatusCode));
                 Console.WriteLine(response.Headers.ToString());
-                var responseContent = await response.Content.ReadAsStringAsync();
                 Console.WriteLine(responseContent);
+                
                 return BadRequest(responseContent);
             }
         }

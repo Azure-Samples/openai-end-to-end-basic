@@ -16,8 +16,10 @@ namespace chatui.Controllers
         [Route("AskChatGPT")]
         public async Task<IActionResult> AskChatGPT([FromBody] string query)
         {
-            var apiEndpoint = _configuration["chatApiEndpoint"];
-            var apiKey = _configuration["chatApiKey"];
+            var chatApiEndpoint = _configuration["chatApiEndpoint"];
+            ArgumentNullException.ThrowIfNull(chatApiEndpoint,  nameof(chatApiEndpoint));
+            var chatApiKey = _configuration["chatApiKey"];
+            ArgumentNullException.ThrowIfNull(chatApiKey,  nameof(chatApiKey));
 
             var chatInputName = _configuration["chatInputName"] ?? "chat_input";
             var chatOutputName = _configuration["chatOutputName"] ?? "chat_output";
@@ -36,8 +38,8 @@ namespace chatui.Controllers
             };
             var requestBody = JsonConvert.SerializeObject(chatstmt);
 
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-            client.BaseAddress = new Uri(apiEndpoint);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", chatApiKey);
+            client.BaseAddress = new Uri(chatApiEndpoint);
 
             var content = new StringContent(requestBody);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");

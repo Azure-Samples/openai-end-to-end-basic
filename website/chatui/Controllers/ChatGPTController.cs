@@ -8,14 +8,9 @@ namespace chatui.Controllers
 {
     [ApiController]
 
-    public class ChatGPTController : ControllerBase
+    public class ChatGPTController(IConfiguration configuration) : ControllerBase
     {
-        private readonly IConfiguration _configuration;
-
-        public ChatGPTController(IConfiguration configuration)
-        {
-            _configuration = configuration;
-        }
+        private readonly IConfiguration _configuration = configuration;
 
         [HttpPost]
         [Route("AskChatGPT")]

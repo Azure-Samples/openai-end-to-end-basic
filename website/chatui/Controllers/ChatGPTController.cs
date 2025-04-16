@@ -46,7 +46,7 @@ namespace chatui.Controllers
 
             var response = await client.PostAsync("", content);
             var responseContent = await response.Content.ReadAsStringAsync();
-            
+
             if (response.IsSuccessStatusCode)
             {
                 Console.WriteLine("Result: {0}", responseContent);
@@ -63,6 +63,10 @@ namespace chatui.Controllers
             {
                 Console.WriteLine(string.Format("The request failed with status code: {0}", response.StatusCode));
                 Console.WriteLine(response.Headers.ToString());
+                foreach (var header in Response.Headers)
+                {
+                    Console.WriteLine("{Key}: {Value}", header.Key, header.Value);
+                }
                 Console.WriteLine(responseContent);
                 
                 return BadRequest(responseContent);

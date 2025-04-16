@@ -17,6 +17,7 @@ namespace chatui.Controllers
         [Route("AskChatGPT")]
         public async Task<IActionResult> AskChatGPT([FromBody] string query)
         {
+            ArgumentNullException.ThrowIfNull(query);
             var chatApiEndpoint = _configuration["chatApiEndpoint"];
             ArgumentNullException.ThrowIfNull(chatApiEndpoint,  nameof(chatApiEndpoint));
             var chatApiKey = _configuration["chatApiKey"];

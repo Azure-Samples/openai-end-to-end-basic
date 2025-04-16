@@ -42,11 +42,11 @@ namespace chatui.Controllers
             var content = new StringContent(requestBody);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
-            HttpResponseMessage response = await client.PostAsync("", content);
+            var response = await client.PostAsync("", content);
 
             if (response.IsSuccessStatusCode)
             {
-                string result = await response.Content.ReadAsStringAsync();
+                var result = await response.Content.ReadAsStringAsync();
                 Console.WriteLine("Result: {0}", result);
 
                 HttpChatGPTResponse oHttpResponse = new()
@@ -60,7 +60,7 @@ namespace chatui.Controllers
             {
                 Console.WriteLine(string.Format("The request failed with status code: {0}", response.StatusCode));
                 Console.WriteLine(response.Headers.ToString());
-                string responseContent = await response.Content.ReadAsStringAsync();
+                var responseContent = await response.Content.ReadAsStringAsync();
                 Console.WriteLine(responseContent);
                 return BadRequest(responseContent);
             }

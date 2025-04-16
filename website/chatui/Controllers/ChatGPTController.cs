@@ -15,9 +15,9 @@ namespace chatui.Controllers
 
         [HttpPost]
         [Route("AskChatGPT")]
-        public async Task<IActionResult> AskChatGPT([FromBody] string query)
+        public async Task<IActionResult> AskChatGPT([FromBody] string prompt)
         {
-            ArgumentNullException.ThrowIfNull(query);
+            ArgumentNullException.ThrowIfNull(prompt);
             var chatApiEndpoint = _configuration["chatApiEndpoint"];
             ArgumentNullException.ThrowIfNull(chatApiEndpoint,  nameof(chatApiEndpoint));
             var chatApiKey = _configuration["chatApiKey"];
@@ -36,7 +36,7 @@ namespace chatui.Controllers
 
             Dictionary<string, string> chatstmt = new()
             {
-                { chatInputName, query }
+                { chatInputName, prompt }
             };
             var requestBody = JsonConvert.SerializeObject(chatstmt);
 

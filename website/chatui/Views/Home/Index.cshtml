@@ -188,19 +188,19 @@
             addChatMessage(nameBOT, "left", "How can I help you today?");
 
             $('#sendButton').click(function () {
-                var message = $('#messageInput').val();
-                askChatGPT(message);
+                var prompt = $('#messageInput').val();
+                sendPrompt(prompt);
                 $('#messageInput').val('');
                 return false;
             });
 
-            function askChatGPT(message) {
-                addChatMessage(namePerson, "right", message);
+            function sendPrompt(prompt) {
+                addChatMessage(namePerson, "right", prompt);
 
                 $.ajax({
                     url: '/AskChatGPT',
                     type: 'POST',
-                    data: JSON.stringify(message),
+                    data: JSON.stringify(prompt),
                     async: true,
                     contentType: 'application/json',
                     success: function (response) {

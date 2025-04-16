@@ -30,8 +30,10 @@ namespace chatui.Controllers
             };
             using var client = new HttpClient(handler);
 
-            Dictionary<string, string> chatstmt = new Dictionary<string, string>();
-            chatstmt.Add(chatInputName, query);
+            Dictionary<string, string> chatstmt = new()
+            {
+                { chatInputName, query }
+            };
             var requestBody = JsonConvert.SerializeObject(chatstmt);
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);

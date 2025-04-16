@@ -8,9 +8,10 @@ namespace chatui.Controllers
 {
     [ApiController]
 
-    public class ChatGPTController(IConfiguration configuration) : ControllerBase
+    public class ChatGPTController(IConfiguration configuration, ILogger<ChatGPTController> logger) : ControllerBase
     {
         private readonly IConfiguration _configuration = configuration;
+        private readonly ILogger<ChatGPTController> _logger = logger;
 
         [HttpPost]
         [Route("AskChatGPT")]
@@ -45,11 +46,12 @@ namespace chatui.Controllers
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
             var response = await client.PostAsync("", content);
+            _logger.LogInformation($"Http request status code: {response.StatusCode}");
             var responseContent = await response.Content.ReadAsStringAsync();
 
             if (response.IsSuccessStatusCode)
             {
-                Console.WriteLine("Result: {0}", responseContent);
+                _logger.LogDebug("Result: {Result}", responseContent);
 
                 HttpChatGPTResponse oHttpResponse = new()
                 {
@@ -61,13 +63,11 @@ namespace chatui.Controllers
             }
             else
             {
-                Console.WriteLine(string.Format("The request failed with status code: {0}", response.StatusCode));
-                Console.WriteLine(response.Headers.ToString());
+                _logger.LogError("Result: {Result}", responseContent);
                 foreach (var header in Response.Headers)
                 {
-                    Console.WriteLine("{Key}: {Value}", header.Key, header.Value);
+                    _logger.LogDebug("{Key}: {Value}", header.Key, header.Value);
                 }
-                Console.WriteLine(responseContent);
                 
                 return BadRequest(responseContent);
             }

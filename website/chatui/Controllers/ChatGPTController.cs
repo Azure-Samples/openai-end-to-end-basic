@@ -17,6 +17,8 @@ namespace chatui.Controllers
         public async Task<IActionResult> AskChatGPT([FromBody] string prompt)
         {
             ArgumentNullException.ThrowIfNull(prompt);
+            _logger.LogDebug("Prompt received {Prompt}", prompt);
+
             var chatApiEndpoint = _configuration["chatApiEndpoint"];
             ArgumentNullException.ThrowIfNull(chatApiEndpoint,  nameof(chatApiEndpoint));
             var chatApiKey = _configuration["chatApiKey"];
@@ -43,7 +45,7 @@ namespace chatui.Controllers
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
             var response = await client.PostAsync("", content);
-            _logger.LogInformation($"Http request status code: {response.StatusCode}");
+            _logger.LogInformation("Http request status code: {ResponseStatusCode}",response.StatusCode);
             var responseContent = await response.Content.ReadAsStringAsync();
 
             if (response.IsSuccessStatusCode)

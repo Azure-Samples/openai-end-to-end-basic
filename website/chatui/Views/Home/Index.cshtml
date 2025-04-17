@@ -178,24 +178,26 @@
         }
     </style>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-
     <script type="text/javascript">
         const nameBOT = "Azure Chatbot Demo";
         const namePerson = "";
 
-        $(function () {
+        document.addEventListener("DOMContentLoaded", () => {
             addChatMessage(nameBOT, "left", "How can I help you today?");
 
-            $('#sendButton').click(function () {
-                var prompt = $('#messageInput').val();
-                sendPrompt(prompt);
-                $('#messageInput').val('');
-                return false;
+            const chatForm = document.querySelector(".msger-inputarea");
+            chatForm.addEventListener("submit", async (event) => {
+                event.preventDefault();
+
+                const prompt = chatForm.message.value;
+                chatForm.message.value = "";
+
+                addChatMessage(namePerson, "right", prompt);
+                const data = await sendPrompt(prompt);
+                addChatMessage(nameBOT, "left", data.data);
             });
 
             async function sendPrompt(prompt) {
-                addChatMessage(namePerson, "right", prompt);
                 const response = await fetch('/AskChatGPT', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -211,10 +213,9 @@
                     }
                     throw new Error(`Error sending prompt: ${errorMessage}`);
                 }
-
                 const data = await response.json();
-                addChatMessage(nameBOT, "left", data.data);
-                $('.imgLoader').hide();
+
+                return data;
             }
 
             function addChatMessage(name, side, text) {
@@ -230,11 +231,9 @@
                                 </div>
                                 `;
 
-                $(".msger-chat").append($(msgHTML));
-
-                $(".msger-chat").scrollTop($(".msger-chat").scrollTop() + 500);
-
-                return false;
+                const chatContainer = document.querySelector(".msger-chat");
+                chatContainer.insertAdjacentHTML("beforeend", msgHTML);
+                chatContainer.scrollTop += 500;
             }
 
             function formatDate(date) {
@@ -245,8 +244,6 @@
             }
         });
     </script>
-
-
 </head>
 
 <body>
@@ -264,7 +261,7 @@
         </main>
 
         <form class="msger-inputarea">
-            <input id="messageInput" type="text" class="msger-input" placeholder="Ask me anything about Azure..." />
+            <input name="message" type="text" class="msger-input" placeholder="Ask me anything about Azure..." />
             <button id="sendButton" class="msger-send-btn">Send</button>
         </form>
     </section>

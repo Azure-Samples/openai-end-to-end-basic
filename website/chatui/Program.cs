@@ -2,8 +2,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddEndpointsApiExplorer();
-
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAllOrigins",

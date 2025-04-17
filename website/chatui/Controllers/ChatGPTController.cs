@@ -1,7 +1,6 @@
 ﻿using System.Net.Http.Headers;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using chatui.Models;
 
 namespace chatui.Controllers
@@ -33,16 +32,13 @@ namespace chatui.Controllers
                         (httpRequestMessage, cert, cetChain, policyErrors) => { return true; }
             };
             using var client = new HttpClient(handler);
-
-            Dictionary<string, string> chatstmt = new()
-            {
-                { chatInputName, prompt }
-            };
-            var requestBody = JsonConvert.SerializeObject(chatstmt);
-
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", chatApiKey);
             client.BaseAddress = new Uri(chatApiEndpoint);
 
+            var requestBody = JsonSerializer.Serialize(new Dictionary<string, string>
+            {
+                [chatInputName] = prompt
+            });
             var content = new StringContent(requestBody);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
@@ -54,10 +50,11 @@ namespace chatui.Controllers
             {
                 _logger.LogDebug("Result: {Result}", responseContent);
 
+                var obj = JsonSerializer.Deserialize<Dictionary<string, string>>(responseContent);
                 HttpChatGPTResponse oHttpResponse = new()
                 {
                     Success = true,
-                    Data = JsonConvert.DeserializeObject<JObject>(responseContent)[chatOutputName].Value<string>()
+                    Data = obj?.GetValueOrDefault(chatOutputName) ?? string.Empty
                 };
 
                 return Ok(oHttpResponse);

@@ -194,20 +194,27 @@
                 return false;
             });
 
-            function sendPrompt(prompt) {
+            async function sendPrompt(prompt) {
                 addChatMessage(namePerson, "right", prompt);
-
-                $.ajax({
-                    url: '/AskChatGPT',
-                    type: 'POST',
-                    data: JSON.stringify(prompt),
-                    async: true,
-                    contentType: 'application/json',
-                    success: function (response) {
-                        addChatMessage(nameBOT, "left", response.data);
-                        $('.imgLoader').hide();
-                    }
+                const response = await fetch('/AskChatGPT', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(prompt)
                 });
+
+                if (!response.ok) {
+                    let errorMessage;
+                    try {
+                        errorMessage = await response.text();
+                    } catch (e) {
+                        errorMessage = response.statusText;
+                    }
+                    throw new Error(`Error sending prompt: ${errorMessage}`);
+                }
+
+                const data = await response.json();
+                addChatMessage(nameBOT, "left", data.data);
+                $('.imgLoader').hide();
             }
 
             function addChatMessage(name, side, text) {

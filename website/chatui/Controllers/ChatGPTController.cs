@@ -21,7 +21,9 @@ public class ChatGPTController(
     [HttpPost]
     public async Task<IActionResult> Completions([FromBody] string prompt)
     {
-        ArgumentNullException.ThrowIfNull(prompt);
+        if (string.IsNullOrWhiteSpace(prompt))
+            throw new ArgumentException("Prompt cannot be null, empty, or whitespace.", nameof(prompt));
+
         _logger.LogDebug("Prompt received {Prompt}", prompt);
 
         var requestBody = JsonSerializer.Serialize(new Dictionary<string, string>

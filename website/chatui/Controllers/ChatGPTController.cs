@@ -8,15 +8,15 @@ using chatui.Models;
 namespace chatui.Controllers
 {
     [ApiController]
+    [Route("[controller]/[action]")]
 
     public class ChatGPTController(IOptions<ChatApiOptions> options, ILogger<ChatGPTController> logger) : ControllerBase
     {
         private readonly ChatApiOptions _config = options.Value;
         private readonly ILogger<ChatGPTController> _logger = logger;
 
-        [HttpPost]
-        [Route("AskChatGPT")]
-        public async Task<IActionResult> AskChatGPT([FromBody] string prompt)
+        [HttpPost("Ask")]
+        public async Task<IActionResult> Ask([FromBody] string prompt)
         {
             ArgumentNullException.ThrowIfNull(prompt);
             _logger.LogDebug("Prompt received {Prompt}", prompt);

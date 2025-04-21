@@ -54,6 +54,6 @@ public class ChatGPTController(
         var result = JsonSerializer.Deserialize<Dictionary<string, string>>(responseContent);
         var output = result?.GetValueOrDefault(_config.ChatOutputName) ?? string.Empty;
 
-        return Ok(new HttpChatGPTResponse { Success = true, Data = output });
+        return Ok(new HttpChatGPTResponse(true, output));
     }
 }

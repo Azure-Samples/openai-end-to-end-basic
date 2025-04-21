@@ -202,24 +202,18 @@
             });
 
             async function sendPrompt(prompt) {
-                const response = await fetch('/chatgpt/completions', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                const response = await fetch("/chatgpt/completions", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(prompt)
                 });
 
                 if (!response.ok) {
-                    let errorMessage;
-                    try {
-                        errorMessage = await response.text();
-                    } catch (e) {
-                        errorMessage = response.statusText;
-                    }
+                    const errorMessage = await response.text().catch(() => response.statusText);
                     throw new Error(`Error sending prompt: ${errorMessage}`);
                 }
-                const data = await response.json();
 
-                return data;
+                return response.json();
             }
 
             function addChatMessage(name, side, text) {

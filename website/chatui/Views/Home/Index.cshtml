@@ -176,14 +176,19 @@
         const PERSON_NAME = "";
 
         document.addEventListener("DOMContentLoaded", () => {
+            const chatForm = document.querySelector(".msger-inputarea");
+            const chatContainer = document.querySelector(".msger-chat");
+            const messageInput = chatForm?.elements?.message;
+
             addChatMessage(BOT_NAME, "left", "How can I help you today?");
 
-            const chatForm = document.querySelector(".msger-inputarea");
             chatForm.addEventListener("submit", async (event) => {
                 event.preventDefault();
+                const prompt = messageInput?.value?.trim();
 
-                const prompt = chatForm.message.value;
-                chatForm.message.value = "";
+                if (!prompt) return;
+
+                messageInput.value = "";
 
                 addChatMessage(PERSON_NAME, "right", prompt);
                 const data = await sendPrompt(prompt);
@@ -224,7 +229,6 @@
                                 </div>
                                 `;
 
-                const chatContainer = document.querySelector(".msger-chat");
                 chatContainer.insertAdjacentHTML("beforeend", msgHTML);
                 chatContainer.scrollTop += 500;
             }

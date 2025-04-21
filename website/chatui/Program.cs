@@ -8,7 +8,7 @@ builder.Services.AddOptions<ChatApiOptions>()
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
-builder.Services.AddHttpClient("ChatGPT", (provider, client) =>
+builder.Services.AddHttpClient("ChatClient", (provider, client) =>
 {
     var config = provider.GetRequiredService<IOptions<ChatApiOptions>>().Value;
     client.BaseAddress = new Uri(config.ChatApiEndpoint);

@@ -1,3 +1,3 @@
 ﻿namespace chatui.Models;
 
-public record HttpChatGPTResponse(bool Success, string Data);
+public record HttpChatResponse(bool Success, string Data);

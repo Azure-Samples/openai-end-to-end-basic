@@ -9,14 +9,14 @@ namespace chatui.Controllers;
 [ApiController]
 [Route("[controller]/[action]")]
 
-public class ChatGPTController(
+public class ChatController(
     IHttpClientFactory httpClientFactory,
     IOptions<ChatApiOptions> options, 
-    ILogger<ChatGPTController> logger) : ControllerBase
+    ILogger<ChatController> logger) : ControllerBase
 {
-    private readonly HttpClient _client = httpClientFactory.CreateClient("ChatGPT");
+    private readonly HttpClient _client = httpClientFactory.CreateClient("ChatClient");
     private readonly ChatApiOptions _config = options.Value;
-    private readonly ILogger<ChatGPTController> _logger = logger;
+    private readonly ILogger<ChatController> _logger = logger;
 
     [HttpPost]
     public async Task<IActionResult> Completions([FromBody] string prompt)
@@ -56,6 +56,6 @@ public class ChatGPTController(
         var result = JsonSerializer.Deserialize<Dictionary<string, string>>(responseContent);
         var output = result?.GetValueOrDefault(_config.ChatOutputName) ?? string.Empty;
 
-        return Ok(new HttpChatGPTResponse(true, output));
+        return Ok(new HttpChatResponse(true, output));
     }
 }

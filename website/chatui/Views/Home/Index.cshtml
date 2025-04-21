@@ -202,7 +202,7 @@
         });
 
         async function sendPrompt(prompt) {
-            const response = await fetch("/chatgpt/completions", {
+            const response = await fetch("/chat/completions", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(prompt)

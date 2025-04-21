@@ -1,3 +1,6 @@
+using Microsoft.Extensions.Options;
+using Azure;
+using Azure.AI.OpenAI;
 using chatui.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,19 +10,17 @@ builder.Services.AddOptions<ChatApiOptions>()
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
-builder.Services.AddHttpClient("ChatClient")
-    .ConfigurePrimaryHttpMessageHandler(() =>
-    {
-        HttpClientHandler handler = new();
+builder.Services.AddSingleton((provider) =>
+{
+    var config = provider.GetRequiredService<IOptions<ChatApiOptions>>().Value;
+    var openAIClient = new AzureOpenAIClient(
+        new Uri(config.ChatApiEndpoint),
+        new AzureKeyCredential(config.ChatApiKey));
 
-        if (builder.Environment.IsDevelopment())
-        {
-            handler.ClientCertificateOptions = ClientCertificateOption.Manual;
-            handler.ServerCertificateCustomValidationCallback = (_, _, _, _) => true;
-        }
-
-        return handler;
-    });
+    // ensure this matches the custom deployment name you specified for
+    // your model under ../../infra-as-code/bicep/openai.bicep
+    return openAIClient.GetChatClient("gpt-35-turbo");
+});
 
 builder.Services.AddControllersWithViews();
 

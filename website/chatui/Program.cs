@@ -1,4 +1,11 @@
+using chatui.Configuration;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddOptions<ChatApiOptions>()
+    .Bind(builder.Configuration)
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 
 builder.Services.AddControllersWithViews();
 

@@ -1,15 +1,17 @@
 ﻿using System.Net.Http.Headers;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using chatui.Configuration;
 using chatui.Models;
 
 namespace chatui.Controllers
 {
     [ApiController]
 
-    public class ChatGPTController(IConfiguration configuration, ILogger<ChatGPTController> logger) : ControllerBase
+    public class ChatGPTController(IOptions<ChatApiOptions> options, ILogger<ChatGPTController> logger) : ControllerBase
     {
-        private readonly IConfiguration _configuration = configuration;
+        private readonly ChatApiOptions _config = options.Value;
         private readonly ILogger<ChatGPTController> _logger = logger;
 
         [HttpPost]
@@ -19,14 +21,6 @@ namespace chatui.Controllers
             ArgumentNullException.ThrowIfNull(prompt);
             _logger.LogDebug("Prompt received {Prompt}", prompt);
 
-            var chatApiEndpoint = _configuration["chatApiEndpoint"];
-            ArgumentNullException.ThrowIfNull(chatApiEndpoint,  nameof(chatApiEndpoint));
-            var chatApiKey = _configuration["chatApiKey"];
-            ArgumentNullException.ThrowIfNull(chatApiKey,  nameof(chatApiKey));
-
-            var chatInputName = _configuration["chatInputName"] ?? "chat_input";
-            var chatOutputName = _configuration["chatOutputName"] ?? "chat_output";
-
             var handler = new HttpClientHandler()
             {
                 ClientCertificateOptions = ClientCertificateOption.Manual,
@@ -34,12 +28,12 @@ namespace chatui.Controllers
                         (httpRequestMessage, cert, cetChain, policyErrors) => { return true; }
             };
             using var client = new HttpClient(handler);
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", chatApiKey);
-            client.BaseAddress = new Uri(chatApiEndpoint);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _config.ChatApiKey);
+            client.BaseAddress = new Uri(_config.ChatApiEndpoint);
 
             var requestBody = JsonSerializer.Serialize(new Dictionary<string, string>
             {
-                [chatInputName] = prompt
+                [_config.ChatInputName] = prompt
             });
             var content = new StringContent(requestBody);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
@@ -56,7 +50,7 @@ namespace chatui.Controllers
                 HttpChatGPTResponse oHttpResponse = new()
                 {
                     Success = true,
-                    Data = obj?.GetValueOrDefault(chatOutputName) ?? string.Empty
+                    Data = obj?.GetValueOrDefault(_config.ChatOutputName) ?? string.Empty
                 };
 
                 return Ok(oHttpResponse);

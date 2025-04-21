@@ -26,7 +26,7 @@ namespace chatui.Controllers
                 ClientCertificateOptions = ClientCertificateOption.Manual,
                 ServerCertificateCustomValidationCallback = (_, _, _, _) => true
             });
-            
+
             client.BaseAddress = new Uri(_config.ChatApiEndpoint);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _config.ChatApiKey);
 
@@ -34,8 +34,8 @@ namespace chatui.Controllers
             {
                 [_config.ChatInputName] = prompt
             });
-            var content = new StringContent(requestBody);
-            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            using var content = new StringContent(requestBody, System.Text.Encoding.UTF8, "application/json");
 
             var response = await client.PostAsync("", content);
             _logger.LogInformation("Http request status code: {ResponseStatusCode}",response.StatusCode);

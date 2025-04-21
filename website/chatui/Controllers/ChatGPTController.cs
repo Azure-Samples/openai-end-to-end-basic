@@ -37,9 +37,10 @@ namespace chatui.Controllers
 
             using var content = new StringContent(requestBody, System.Text.Encoding.UTF8, "application/json");
 
-            var response = await client.PostAsync("", content);
-            _logger.LogInformation("Http request status code: {ResponseStatusCode}",response.StatusCode);
+            var response = await client.PostAsync(string.Empty, content);
             var responseContent = await response.Content.ReadAsStringAsync();
+
+            _logger.LogInformation("Http request status code: {ResponseStatusCode}",response.StatusCode);
 
             if (response.IsSuccessStatusCode)
             {

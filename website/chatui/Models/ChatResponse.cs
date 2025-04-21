@@ -1,8 +1,7 @@
-﻿namespace chatui.Models
+﻿namespace chatui.Models;
+
+public class HttpChatGPTResponse
 {
-    public class HttpChatGPTResponse
-    {
-        public bool Success { get; set; }
-        public required string Data { get; set; }
-    }
+    public bool Success { get; set; }
+    public required string Data { get; set; }
 }

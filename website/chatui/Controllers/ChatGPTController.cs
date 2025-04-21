@@ -4,57 +4,56 @@ using Microsoft.Extensions.Options;
 using chatui.Configuration;
 using chatui.Models;
 
-namespace chatui.Controllers
+namespace chatui.Controllers;
+
+[ApiController]
+[Route("[controller]/[action]")]
+
+public class ChatGPTController(
+    IHttpClientFactory httpClientFactory,
+    IOptions<ChatApiOptions> options, 
+    ILogger<ChatGPTController> logger) : ControllerBase
 {
-    [ApiController]
-    [Route("[controller]/[action]")]
+    private readonly HttpClient _client = httpClientFactory.CreateClient("ChatGPT");
+    private readonly ChatApiOptions _config = options.Value;
+    private readonly ILogger<ChatGPTController> _logger = logger;
 
-    public class ChatGPTController(
-        IHttpClientFactory httpClientFactory,
-        IOptions<ChatApiOptions> options, 
-        ILogger<ChatGPTController> logger) : ControllerBase
+    [HttpPost]
+    public async Task<IActionResult> Completions([FromBody] string prompt)
     {
-        private readonly HttpClient _client = httpClientFactory.CreateClient("ChatGPT");
-        private readonly ChatApiOptions _config = options.Value;
-        private readonly ILogger<ChatGPTController> _logger = logger;
+        ArgumentNullException.ThrowIfNull(prompt);
+        _logger.LogDebug("Prompt received {Prompt}", prompt);
 
-        [HttpPost]
-        public async Task<IActionResult> Completions([FromBody] string prompt)
+        var requestBody = JsonSerializer.Serialize(new Dictionary<string, string>
         {
-            ArgumentNullException.ThrowIfNull(prompt);
-            _logger.LogDebug("Prompt received {Prompt}", prompt);
+            [_config.ChatInputName] = prompt
+        });
 
-            var requestBody = JsonSerializer.Serialize(new Dictionary<string, string>
-            {
-                [_config.ChatInputName] = prompt
-            });
+        using var content = new StringContent(requestBody, System.Text.Encoding.UTF8, "application/json");
 
-            using var content = new StringContent(requestBody, System.Text.Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync(string.Empty, content);
+        var responseContent = await response.Content.ReadAsStringAsync();
 
-            var response = await _client.PostAsync(string.Empty, content);
-            var responseContent = await response.Content.ReadAsStringAsync();
+        _logger.LogInformation("HTTP status code: {StatusCode}", response.StatusCode);
 
-            _logger.LogInformation("HTTP status code: {StatusCode}", response.StatusCode);
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogError("Error response: {Content}", responseContent);
 
-            if (!response.IsSuccessStatusCode)
-            {
-                _logger.LogError("Error response: {Content}", responseContent);
+            foreach (var (key, value) in response.Headers)
+                _logger.LogDebug("Header {Key}: {Value}", key, string.Join(", ", value));
 
-                foreach (var (key, value) in response.Headers)
-                    _logger.LogDebug("Header {Key}: {Value}", key, string.Join(", ", value));
+            foreach (var (key, value) in response.Content.Headers)
+                _logger.LogDebug("Content-Header {Key}: {Value}", key, string.Join(", ", value));
 
-                foreach (var (key, value) in response.Content.Headers)
-                    _logger.LogDebug("Content-Header {Key}: {Value}", key, string.Join(", ", value));
-
-                return BadRequest(responseContent);
-            }
-
-            _logger.LogDebug("Successful response: {Content}", responseContent);
-
-            var result = JsonSerializer.Deserialize<Dictionary<string, string>>(responseContent);
-            var output = result?.GetValueOrDefault(_config.ChatOutputName) ?? string.Empty;
-
-            return Ok(new HttpChatGPTResponse { Success = true, Data = output });
+            return BadRequest(responseContent);
         }
+
+        _logger.LogDebug("Successful response: {Content}", responseContent);
+
+        var result = JsonSerializer.Deserialize<Dictionary<string, string>>(responseContent);
+        var output = result?.GetValueOrDefault(_config.ChatOutputName) ?? string.Empty;
+
+        return Ok(new HttpChatGPTResponse { Success = true, Data = output });
     }
 }

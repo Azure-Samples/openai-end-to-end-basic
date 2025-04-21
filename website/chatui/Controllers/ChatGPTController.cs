@@ -42,29 +42,23 @@ namespace chatui.Controllers
 
             _logger.LogInformation("Http request status code: {ResponseStatusCode}",response.StatusCode);
 
-            if (response.IsSuccessStatusCode)
-            {
-                _logger.LogDebug("Result: {Result}", responseContent);
-
-                var obj = JsonSerializer.Deserialize<Dictionary<string, string>>(responseContent);
-                HttpChatGPTResponse oHttpResponse = new()
-                {
-                    Success = true,
-                    Data = obj?.GetValueOrDefault(_config.ChatOutputName) ?? string.Empty
-                };
-
-                return Ok(oHttpResponse);
-            }
-            else
+            if (!response.IsSuccessStatusCode)
             {
                 _logger.LogError("Result: {Result}", responseContent);
-                foreach (var header in Response.Headers)
-                {
-                    _logger.LogDebug("{Key}: {Value}", header.Key, header.Value);
-                }
-                
+                foreach (var (key, value) in response.Headers)
+                    _logger.LogDebug("Header {Key}: {Value}", key, string.Join(", ", value));
+                foreach (var (key, value) in response.Content.Headers)
+                    _logger.LogDebug("Content-Header {Key}: {Value}", key, string.Join(", ", value));
+
                 return BadRequest(responseContent);
             }
+
+            _logger.LogDebug("Result: {Result}", responseContent);
+
+            var result = JsonSerializer.Deserialize<Dictionary<string, string>>(responseContent);
+            var output = result?.GetValueOrDefault(_config.ChatOutputName) ?? string.Empty;
+
+            return Ok(new HttpChatGPTResponse { Success = true, Data = output });
         }
     }
 }

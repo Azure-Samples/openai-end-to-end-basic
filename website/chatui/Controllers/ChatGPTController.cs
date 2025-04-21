@@ -18,8 +18,8 @@ namespace chatui.Controllers
         private readonly ChatApiOptions _config = options.Value;
         private readonly ILogger<ChatGPTController> _logger = logger;
 
-        [HttpPost("Ask")]
-        public async Task<IActionResult> Ask([FromBody] string prompt)
+        [HttpPost]
+        public async Task<IActionResult> Completions([FromBody] string prompt)
         {
             ArgumentNullException.ThrowIfNull(prompt);
             _logger.LogDebug("Prompt received {Prompt}", prompt);

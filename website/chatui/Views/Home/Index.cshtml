@@ -172,11 +172,11 @@
     </style>
 
     <script type="text/javascript">
-        const nameBOT = "Azure Chatbot Demo";
-        const namePerson = "";
+        const BOT_NAME = "Azure Chatbot Demo";
+        const PERSON_NAME = "";
 
         document.addEventListener("DOMContentLoaded", () => {
-            addChatMessage(nameBOT, "left", "How can I help you today?");
+            addChatMessage(BOT_NAME, "left", "How can I help you today?");
 
             const chatForm = document.querySelector(".msger-inputarea");
             chatForm.addEventListener("submit", async (event) => {
@@ -185,9 +185,9 @@
                 const prompt = chatForm.message.value;
                 chatForm.message.value = "";
 
-                addChatMessage(namePerson, "right", prompt);
+                addChatMessage(PERSON_NAME, "right", prompt);
                 const data = await sendPrompt(prompt);
-                addChatMessage(nameBOT, "left", data.data);
+                addChatMessage(BOT_NAME, "left", data.data);
             });
 
             async function sendPrompt(prompt) {

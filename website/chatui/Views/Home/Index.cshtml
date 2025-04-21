@@ -235,11 +235,8 @@
                 chatContainer.scrollTop = chatContainer.scrollHeight;
             }
 
-            function formatDate(date) {
-                const h = "0" + date.getHours();
-                const m = "0" + date.getMinutes();
-
-                return `${h.slice(-2)}:${m.slice(-2)}`;
+            function formatTime(date) {
+                return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             }
 
             function escapeHTML(str) {

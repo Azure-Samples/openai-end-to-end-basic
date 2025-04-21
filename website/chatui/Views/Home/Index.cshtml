@@ -191,8 +191,14 @@
                 messageInput.value = "";
 
                 addChatMessage(PERSON_NAME, "right", prompt);
-                const data = await sendPrompt(prompt);
-                addChatMessage(BOT_NAME, "left", data.data);
+
+                try {
+                    const { data } = await sendPrompt(prompt);
+                    addChatMessage(BOT_NAME, "left", data);
+                } catch (error) {
+                    addChatMessage(BOT_NAME, "left", `Sorry, something went wrong.`);
+                    console.error(error);
+                }
             });
 
             async function sendPrompt(prompt) {

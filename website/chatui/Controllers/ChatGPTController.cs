@@ -21,15 +21,14 @@ namespace chatui.Controllers
             ArgumentNullException.ThrowIfNull(prompt);
             _logger.LogDebug("Prompt received {Prompt}", prompt);
 
-            var handler = new HttpClientHandler()
+            using var client = new HttpClient(new HttpClientHandler
             {
                 ClientCertificateOptions = ClientCertificateOption.Manual,
-                ServerCertificateCustomValidationCallback =
-                        (httpRequestMessage, cert, cetChain, policyErrors) => { return true; }
-            };
-            using var client = new HttpClient(handler);
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _config.ChatApiKey);
+                ServerCertificateCustomValidationCallback = (_, _, _, _) => true
+            });
+            
             client.BaseAddress = new Uri(_config.ChatApiEndpoint);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _config.ChatApiKey);
 
             var requestBody = JsonSerializer.Serialize(new Dictionary<string, string>
             {

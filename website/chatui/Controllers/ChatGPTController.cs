@@ -1,5 +1,4 @@
-﻿using System.Net.Http.Headers;
-using System.Text.Json;
+﻿using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using chatui.Configuration;
@@ -10,8 +9,12 @@ namespace chatui.Controllers
     [ApiController]
     [Route("[controller]/[action]")]
 
-    public class ChatGPTController(IOptions<ChatApiOptions> options, ILogger<ChatGPTController> logger) : ControllerBase
+    public class ChatGPTController(
+        IHttpClientFactory httpClientFactory,
+        IOptions<ChatApiOptions> options, 
+        ILogger<ChatGPTController> logger) : ControllerBase
     {
+        private readonly HttpClient _client = httpClientFactory.CreateClient("ChatGPT");
         private readonly ChatApiOptions _config = options.Value;
         private readonly ILogger<ChatGPTController> _logger = logger;
 
@@ -21,15 +24,6 @@ namespace chatui.Controllers
             ArgumentNullException.ThrowIfNull(prompt);
             _logger.LogDebug("Prompt received {Prompt}", prompt);
 
-            using var client = new HttpClient(new HttpClientHandler
-            {
-                ClientCertificateOptions = ClientCertificateOption.Manual,
-                ServerCertificateCustomValidationCallback = (_, _, _, _) => true
-            });
-
-            client.BaseAddress = new Uri(_config.ChatApiEndpoint);
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _config.ChatApiKey);
-
             var requestBody = JsonSerializer.Serialize(new Dictionary<string, string>
             {
                 [_config.ChatInputName] = prompt
@@ -37,7 +31,7 @@ namespace chatui.Controllers
 
             using var content = new StringContent(requestBody, System.Text.Encoding.UTF8, "application/json");
 
-            var response = await client.PostAsync(string.Empty, content);
+            var response = await _client.PostAsync(string.Empty, content);
             var responseContent = await response.Content.ReadAsStringAsync();
 
             _logger.LogInformation("HTTP status code: {StatusCode}", response.StatusCode);

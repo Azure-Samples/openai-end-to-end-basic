@@ -40,20 +40,22 @@ namespace chatui.Controllers
             var response = await client.PostAsync(string.Empty, content);
             var responseContent = await response.Content.ReadAsStringAsync();
 
-            _logger.LogInformation("Http request status code: {ResponseStatusCode}",response.StatusCode);
+            _logger.LogInformation("HTTP status code: {StatusCode}", response.StatusCode);
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogError("Result: {Result}", responseContent);
+                _logger.LogError("Error response: {Content}", responseContent);
+
                 foreach (var (key, value) in response.Headers)
                     _logger.LogDebug("Header {Key}: {Value}", key, string.Join(", ", value));
+
                 foreach (var (key, value) in response.Content.Headers)
                     _logger.LogDebug("Content-Header {Key}: {Value}", key, string.Join(", ", value));
 
                 return BadRequest(responseContent);
             }
 
-            _logger.LogDebug("Result: {Result}", responseContent);
+            _logger.LogDebug("Successful response: {Content}", responseContent);
 
             var result = JsonSerializer.Deserialize<Dictionary<string, string>>(responseContent);
             var output = result?.GetValueOrDefault(_config.ChatOutputName) ?? string.Empty;

@@ -117,10 +117,10 @@ resource appsettings 'Microsoft.Web/sites/config@2022-09-01' = {
     APPINSIGHTS_INSTRUMENTATIONKEY: appInsights.properties.InstrumentationKey
     APPLICATIONINSIGHTS_CONNECTION_STRING: appInsights.properties.ConnectionString
     ApplicationInsightsAgent_EXTENSION_VERSION: '~2'
-    chatApiKey: '@Microsoft.KeyVault(SecretUri=${keyVault::chatApiKey.properties.secretUri})'
-    chatApiEndpoint: chatProject::scoreEndpoint.properties.scoringUri
-    chatInputName: 'question'
-    chatOutputName: 'answer'
+    ChatApiKey: '@Microsoft.KeyVault(SecretUri=${keyVault::chatApiKey.properties.secretUri})'
+    ChatApiEndpoint: chatProject::scoreEndpoint.properties.scoringUri
+    ChatInputName: 'question'
+    ChatOutputName: 'answer'
     keyVaultReferenceIdentity: appServiceManagedIdentity.id
   }
 }

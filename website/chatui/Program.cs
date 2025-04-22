@@ -10,11 +10,15 @@ builder.Services.AddOptions<ChatApiOptions>()
 builder.Services.AddHttpClient("ChatClient")
     .ConfigurePrimaryHttpMessageHandler(() =>
     {
-        return new HttpClientHandler
+        HttpClientHandler handler = new();
+
+        if (builder.Environment.IsDevelopment())
         {
-            ClientCertificateOptions = ClientCertificateOption.Manual,
-            ServerCertificateCustomValidationCallback = (_, _, _, _) => true
-        };
+            handler.ClientCertificateOptions = ClientCertificateOption.Manual;
+            handler.ServerCertificateCustomValidationCallback = (_, _, _, _) => true;
+        }
+
+        return handler;
     });
 
 builder.Services.AddControllersWithViews();

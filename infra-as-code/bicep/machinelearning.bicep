@@ -462,7 +462,8 @@ resource chatProjectDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-
   }
 }
 
-@description('Azure Diagnostics: AI Foundry chat project -> endpoint allLogs')
+@description('Azure Diagnostics: AI Foundry chat project -> endpoint')
+
 resource chatProjectEndpointDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: 'default'
   scope: chatProject::endpoint

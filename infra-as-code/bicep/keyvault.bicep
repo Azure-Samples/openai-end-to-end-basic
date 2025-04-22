@@ -41,6 +41,9 @@ resource keyVault 'Microsoft.KeyVault/vaults@2024-11-01' = {
     enableRbacAuthorization: true       // Using RBAC
     enabledForDeployment: true          // VMs can retrieve certificates
     enabledForTemplateDeployment: true  // ARM can retrieve values
+    accessPolicies: []                  // Using RBAC
+    publicNetworkAccess: 'Enabled'      // Production readiness change: This sample uses identity as the perimeter. Production scenarios should layer in network perimeter control as well.
+    enabledForDiskEncryption: false
 
     enableSoftDelete: true
     softDeleteRetentionInDays: 7

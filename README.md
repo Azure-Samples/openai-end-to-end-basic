@@ -61,8 +61,6 @@ Follow these instructions to deploy this example to your Azure subscription, try
 
   If you're executing this from WSL, be sure the Azure CLI is installed in WSL and is not using the version installed in Windows. `which az` should show `/usr/bin/az`.
 
-- The [az Bicep tools installed](https://learn.microsoft.com/azure/azure-resource-manager/bicep/install)
-
 ### 1. :rocket: Deploy the infrastructure
 
 The following steps are required to deploy the infrastructure from the command line.
@@ -98,7 +96,7 @@ The following steps are required to deploy the infrastructure from the command l
 1. Create a resource group and deploy the infrastructure.
 
    *There is an optional tracking ID on this deployment. To opt out of its use, add the following parameter to the deployment code below: `-p telemetryOptOut true`.*
-   
+
    ```bash
    RESOURCE_GROUP=rg-chat-basic-${LOCATION}
    az group create -l $LOCATION -n $RESOURCE_GROUP
@@ -150,11 +148,9 @@ Here you'll test your flow by invoking it directly from the Azure AI Foundry por
 
 1. Click **Start compute session**.
 
-1. :clock8: Wait for that button to change to *Compute session running*. This may take about five minutes.
+1. :clock8: Wait for that button to change to *Compute session running*. This may take about six minutes.
 
-   If you get an error related to pip and dependency resolver, this is because of the temporary workaround you followed in the prior steps, this is safe to ignore.
-
-   *Do not advance until the serverless compute is running.*
+   *Do not advance until the serverless compute session is running.*
 
 1. Click the enabled **Chat** button on the UI.
 
@@ -174,7 +170,7 @@ Here you'll take your tested flow and deploy it to a managed online endpoint.
 
    - **Deployment name**: ept-chat-deployment
    - **Virtual machine**: Choose a small virtual machine size from which you have quota. 'Standard_D2as_v4' is plenty for this sample.
-   - **Instance count**: 3. This is the recommended minimum count.
+   - **Instance count**: 3. *This is the recommended minimum count.*
    - **Inferencing data collection**: Enabled
 
 1. Set the following Advanced settings, and click **Next**.
@@ -196,7 +192,7 @@ Here you'll take your tested flow and deploy it to a managed online endpoint.
 
 1. :clock9: Wait for the deployment to finish creating.
 
-   The deployment can take over ten minutes to create. To check on the process, navigate to the **Deployments** screen using the link in the left navigation. Eventually 'ept-chat-deployment' will be on this list and then eventually the deployment will be listed with a State of 'Succeeded'. Use the **Refresh** button as needed.
+   The deployment can take over ten minutes to create. To check on the process, navigate to the deployments screen using **Models + endpoints** the link in the left navigation. Eventually 'ept-chat-deployment' will be on this list and the deployment will be listed with a State of 'Succeeded'. Use the **Refresh** button as needed.
 
    *Do not advance until this deployment is complete.*
 
@@ -215,12 +211,12 @@ Workloads build chat functionality into an application. Those interfaces usually
 ```bash
 APPSERVICE_NAME=app-$BASE_NAME
 
-az webapp deploy -g $RESOURCE_GROUP -n $APPSERVICE_NAME --type zip --src-url https://raw.githubusercontent.com/Azure-Samples/openai-end-to-end-basic/main/website/chatui.zip
+az webapp deploy -g $RESOURCE_GROUP -n $APPSERVICE_NAME --type zip --src-url https://github.com/Azure-Samples/openai-end-to-end-basic/raw/refs/heads/main/website/chatui.zip
 ```
 
-> Sometimes the prior deployment will fail with a `GatewayTimeout`. If you receive that error, you're safe to simply execute the command again.
+> Sometimes the prior command will fail with a `GatewayTimeout`. If you receive that error, you're safe to simply execute the command again.
 
-## :checkered_flag: Try it out. Test the deployed application.
+## :checkered_flag: Try it out. Test the deployed application
 
 After the deployment is complete, you can try the deployed application by navigating to the Web App's URL in a web browser.
 
@@ -230,15 +226,16 @@ You can also execute the following from your workstation. Unfortunately, this co
 az webapp browse -g $RESOURCE_GROUP -n $APPSERVICE_NAME
 ```
 
-Once you're there, ask your solution a question. Like before, you question should ideally involve recent data or events, something that would only be known by the RAG process including content from Wikipedia.
+Once you're there, ask your solution a question. Like before, you question should ideally involve recent data or events, something that would only be known by the RAG process including context from Wikipedia.
 
 ## :broom: Clean up resources
 
-Most Azure resources deployed in the prior steps will incur ongoing charges unless removed. Additionally, a few of the resources deployed go into a soft delete status which may restrict the ability to redeploy another resource with the same name and may not release quota, so it is best to purge any soft deleted resources once you are done exploring. Use the following commands to delete the deployed resources and resource group and to purge each of the resources with soft delete.
+Most Azure resources deployed in the prior steps will incur ongoing charges unless removed. Additionally, a few of the resources deployed go into a soft delete status which will restrict the ability to redeploy another resource with the same name and might not release quota. It's best to purge any soft deleted resources once you are done exploring. Use the following commands to delete the deployed resources and resource group and to purge each of the resources with soft delete.
 
 > **Note:** This will completely delete any data you may have included in this example and it will be unrecoverable.
 
 ```bash
+# These deletes and purges take about 30 minutes to run.
 az group delete -n $RESOURCE_GROUP -y
 
 # Purge the soft delete resources

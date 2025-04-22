@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Net.Http.Headers;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using chatui.Configuration;
@@ -11,11 +12,11 @@ namespace chatui.Controllers;
 
 public class ChatController(
     IHttpClientFactory httpClientFactory,
-    IOptions<ChatApiOptions> options, 
+    IOptionsMonitor<ChatApiOptions> options, 
     ILogger<ChatController> logger) : ControllerBase
 {
     private readonly HttpClient _client = httpClientFactory.CreateClient("ChatClient");
-    private readonly ChatApiOptions _config = options.Value;
+    private readonly IOptionsMonitor<ChatApiOptions> _options = options;
     private readonly ILogger<ChatController> _logger = logger;
 
     [HttpPost]
@@ -26,14 +27,20 @@ public class ChatController(
 
         _logger.LogDebug("Prompt received {Prompt}", prompt);
 
+        var _config = _options.CurrentValue;
+
         var requestBody = JsonSerializer.Serialize(new Dictionary<string, string>
         {
             [_config.ChatInputName] = prompt
         });
 
-        using var content = new StringContent(requestBody, System.Text.Encoding.UTF8, "application/json");
+        using var request = new HttpRequestMessage(HttpMethod.Post, _config.ChatApiEndpoint)
+        {
+            Content = new StringContent(requestBody, System.Text.Encoding.UTF8, "application/json"),
+        };
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _config.ChatApiKey);
 
-        var response = await _client.PostAsync(string.Empty, content);
+        var response = await _client.SendAsync(request);
         var responseContent = await response.Content.ReadAsStringAsync();
 
         _logger.LogInformation("HTTP status code: {StatusCode}", response.StatusCode);

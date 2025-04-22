@@ -21,7 +21,7 @@ resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' exis
   name: logWorkspaceName
 }
 
-resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
+resource keyVault 'Microsoft.KeyVault/vaults@2024-11-01' = {
   name: keyVaultName
   location: location
   properties: {
@@ -32,6 +32,8 @@ resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
     networkAcls: {
       defaultAction: 'Allow'  // Production readiness change: This sample uses identity as the perimeter. Production scenarios should layer in network perimeter control as well.
       bypass: 'AzureServices' // Required for AppGW communication if firewall is enabled in the future.
+      ipRules: []
+      virtualNetworkRules: []
     }
 
     tenantId: subscription().tenantId
@@ -39,6 +41,9 @@ resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
     enableRbacAuthorization: true      // Using RBAC
     enabledForDeployment: true         // VMs can retrieve certificates
     enabledForTemplateDeployment: true // ARM can retrieve values
+    accessPolicies: []                 // Using RBAC
+    publicNetworkAccess: 'Enabled'     // Production readiness change: This sample uses identity as the perimeter. Production scenarios should layer in network perimeter control as well.
+    enabledForDiskEncryption: false
 
     enableSoftDelete: true
     softDeleteRetentionInDays: 7
@@ -48,13 +53,21 @@ resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
 
 //Key Vault diagnostic settings
 resource keyVaultDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  name: '${keyVault.name}-diagnosticSettings'
+  name: 'default'
   scope: keyVault
   properties: {
     workspaceId: logWorkspace.id
     logs: [
       {
-        categoryGroup: 'allLogs'
+        category: 'AuditEvent'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'AzurePolicyEvaluationDetails'
         enabled: true
         retentionPolicy: {
           enabled: false

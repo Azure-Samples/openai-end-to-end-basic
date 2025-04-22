@@ -127,7 +127,7 @@ resource appsettings 'Microsoft.Web/sites/config@2022-09-01' = {
 
 //Web App diagnostic settings
 resource webAppDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  name: '${webApp.name}-diagnosticSettings'
+  name: 'default'
   scope: webApp
   properties: {
     workspaceId: logWorkspace.id

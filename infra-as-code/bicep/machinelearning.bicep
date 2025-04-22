@@ -103,7 +103,7 @@ resource amlWorkspaceSecretsReaderRole 'Microsoft.Authorization/roleDefinitions@
 // Endpoint -> AcrPull to the Container Registry
 // Endpoint -> Storage Blob Data Contributor to the storage account
 
-// To light up the Azure AI portal experience, the user themsleves need a few data plane permissions. To simulate that for this implementation
+// To light up the Azure AI portal experience, the user themselves need a few data plane permissions. To simulate that for this implementation
 // we will assign the user that is running this deployment the following three roles:
 
 @description('Assign your user the ability to manage files in storage. This is needed to use the Prompt flow editor in the Azure AI Foundry portal.')
@@ -152,7 +152,7 @@ resource aiHub 'Microsoft.MachineLearningServices/workspaces@2025-01-01-preview'
     tier: 'Basic'
   }
   identity: {
-    type: 'SystemAssigned' // This resource's identity is automatically assigned priviledge access to ACR, Storage, Key Vault, and Application Insights.
+    type: 'SystemAssigned' // This resource's identity is automatically assigned privileged access to ACR, Storage, Key Vault, and Application Insights.
   }
   properties: {
     friendlyName: 'Azure OpenAI Chat Hub'
@@ -198,7 +198,7 @@ resource aiHub 'Microsoft.MachineLearningServices/workspaces@2025-01-01-preview'
   }
 }
 
-@description('Azure Diagnostics: Azure AI Foundry hub - allLogs')
+@description('Azure Diagnostics: Azure AI Foundry hub')
 resource aiHubDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: 'default'
   scope: aiHub
@@ -206,7 +206,7 @@ resource aiHubDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-pre
     workspaceId: logWorkspace.id
     logs: [
       {
-        categoryGroup: 'allLogs' // Production readiness change: In production, this is probably excessive. Please tune to just the log streams that add value to your workload's operations.
+        category: 'ComputeInstanceEvent'
         enabled: true
         retentionPolicy: {
           enabled: false
@@ -229,7 +229,7 @@ resource chatProject 'Microsoft.MachineLearningServices/workspaces@2024-10-01' =
     tier: 'Basic'
   }
   identity: {
-    type: 'SystemAssigned' // This resource's identity is automatically assigned priviledge access to ACR, Storage, Key Vault, and Application Insights.
+    type: 'SystemAssigned' // This resource's identity is automatically assigned privileged access to ACR, Storage, Key Vault, and Application Insights.
   }
   properties: {
     friendlyName: 'Chat with Wikipedia project'
@@ -253,7 +253,7 @@ resource chatProject 'Microsoft.MachineLearningServices/workspaces@2024-10-01' =
     }
 
     // TODO: Noticed that traffic goes back to 0% if this is template redeployed after the Prompt flow
-    // deplopyment is complete. How can we stop that?
+    // deployment is complete. How can we stop that?
   }
 }
 
@@ -282,15 +282,176 @@ resource projectOpenAIUserForOnlineEndpointRoleAssignment 'Microsoft.Authorizati
   }
 }
 
-@description('Azure Diagnostics: AI Foundry chat project - allLogs')
+@description('Azure Diagnostics: AI Foundry chat project')
 resource chatProjectDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: 'default'
   scope: chatProject
   properties: {
     workspaceId: logWorkspace.id
     logs: [
+      // Production readiness change: In production, these log categories are probably excessive. Please tune to just enable the log streams that add value to your workload's operations.
       {
-        categoryGroup: 'allLogs' // Production readiness change: In production, this is probably excessive. Please tune to just the log streams that add value to your workload's operations.
+        category: 'AmlComputeClusterEvent'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'AmlComputeClusterNodeEvent'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'AmlComputeJobEvent'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'AmlComputeCpuGpuUtilization'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'AmlRunStatusChangedEvent'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'ModelsChangeEvent'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'ModelsReadEvent'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'ModelsActionEvent'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'DeploymentReadEvent'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'DeploymentEventACI'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'InferencingOperationACI'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'EnvironmentChangeEvent'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'EnvironmentReadEvent'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'DataLabelChangeEvent'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'DataLabelReadEvent'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'DataSetChangeEvent'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'DataSetReadEvent'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'PipelineChangeEvent'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'PipelineReadEvent'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'RunEvent'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'RunReadEvent'
         enabled: true
         retentionPolicy: {
           enabled: false
@@ -309,7 +470,23 @@ resource chatProjectEndpointDiagSettings 'Microsoft.Insights/diagnosticSettings@
     workspaceId: logWorkspace.id
     logs: [
       {
-        categoryGroup: 'allLogs' // Production readiness change: In production, this is probably excessive. Please tune to just the log streams that add value to your workload's operations.
+        category: 'AmlOnlineEndpointConsoleLog'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'AmlOnlineEndpointTrafficLog'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'AmlOnlineEndpointEventLog'
         enabled: true
         retentionPolicy: {
           enabled: false

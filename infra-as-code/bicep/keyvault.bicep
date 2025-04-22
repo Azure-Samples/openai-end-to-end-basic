@@ -21,7 +21,7 @@ resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' exis
   name: logWorkspaceName
 }
 
-resource keyVault 'Microsoft.KeyVault/vaults@2024-04-01-preview' = {
+resource keyVault 'Microsoft.KeyVault/vaults@2024-11-01' = {
   name: keyVaultName
   location: location
   properties: {
@@ -32,6 +32,8 @@ resource keyVault 'Microsoft.KeyVault/vaults@2024-04-01-preview' = {
     networkAcls: {
       defaultAction: 'Allow'            // Production readiness change: This sample uses identity as the perimeter. Production scenarios should layer in network perimeter control as well.
       bypass: 'AzureServices'           // Required for AppGW communication if firewall is enabled in the future.
+      ipRules: []
+      virtualNetworkRules: []
     }
 
     tenantId: subscription().tenantId
@@ -48,13 +50,21 @@ resource keyVault 'Microsoft.KeyVault/vaults@2024-04-01-preview' = {
 
 //Key Vault diagnostic settings
 resource keyVaultDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  name: '${keyVault.name}-diagnosticSettings'
+  name: 'default'
   scope: keyVault
   properties: {
     workspaceId: logWorkspace.id
     logs: [
       {
-        categoryGroup: 'allLogs'
+        category: 'AuditEvent'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'AzurePolicyEvaluationDetails'
         enabled: true
         retentionPolicy: {
           enabled: false

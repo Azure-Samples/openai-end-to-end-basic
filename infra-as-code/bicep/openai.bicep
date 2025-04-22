@@ -142,7 +142,7 @@ resource openAiAccount 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
         format: 'OpenAI'
         name: 'gpt-35-turbo'
         version: '0125' // If your selected region doesn't support this version, please change it.
-                        // az cognitiveservices model list -l YOUR_REGION --query "sort([?model.name == 'gpt-35-turbo' && kind == 'OpenAI'].model.version)" -o tsv
+                        // az cognitiveservices model list -l $LOCATION --query "sort([?model.name == 'gpt-35-turbo' && kind == 'OpenAI'].model.version)" -o tsv
       }
       raiPolicyName: openAiAccount::blockingFilter.name
       versionUpgradeOption: 'OnceNewDefaultVersionAvailable' // Production readiness change: Always be explicit about model versions, use 'NoAutoUpgrade' to prevent version changes.
@@ -152,13 +152,37 @@ resource openAiAccount 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
 
 //OpenAI diagnostic settings
 resource openAIDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  name: '${openAiAccount.name}-diagnosticSettings'
+  name: 'default'
   scope: openAiAccount
   properties: {
     workspaceId: logWorkspace.id
     logs: [
       {
-        categoryGroup: 'allLogs'
+        category: 'Audit'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'RequestResponse'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'AzureOpenAIRequestUsage'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'Trace'
         enabled: true
         retentionPolicy: {
           enabled: false

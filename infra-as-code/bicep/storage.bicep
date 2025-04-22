@@ -23,7 +23,7 @@ resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' exis
 }
 
 // ---- Storage resources ----
-resource aiStudioStorageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' = {
+resource aiStudioStorageAccount 'Microsoft.Storage/storageAccounts@2024-01-01' = {
   name: aiStudioStorageAccountName
   location: location
   sku: {
@@ -35,7 +35,16 @@ resource aiStudioStorageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' =
     accessTier: 'Hot'
     allowBlobPublicAccess: true
     allowSharedKeyAccess: true
+    isSftpEnabled: false
+    isHnsEnabled: false
     allowCrossTenantReplication: false
+    defaultToOAuthAuthentication: true
+    isLocalUserEnabled: false
+    routingPreference: {
+      publishInternetEndpoints: true
+      publishMicrosoftEndpoints: true
+      routingChoice: 'MicrosoftRouting'
+    }
     encryption: {
       keySource: 'Microsoft.Storage'
       requireInfrastructureEncryption: false
@@ -75,13 +84,29 @@ resource aiStudioStorageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' =
 
 @description('Azure AI Foundry\'s blob storage account diagnostic settings.')
 resource aiStudioStorageAccountBlobDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  name: '${aiStudioStorageAccount.name}-blobdiagnosticSettings'
+  name: 'default'
   scope: aiStudioStorageAccount::Blob
   properties: {
     workspaceId: logWorkspace.id
     logs: [
       {
-        categoryGroup: 'allLogs'
+        category: 'StorageRead'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'StorageWrite'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'StorageDelete'
         enabled: true
         retentionPolicy: {
           enabled: false
@@ -95,13 +120,29 @@ resource aiStudioStorageAccountBlobDiagSettings 'Microsoft.Insights/diagnosticSe
 
 @description('Azure AI Foundry\'s file storage account diagnostic settings.')
 resource aiStudioStorageAccountFileDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  name: '${aiStudioStorageAccount.name}-filediagnosticSettings'
+  name: 'default'
   scope: aiStudioStorageAccount::File
   properties: {
     workspaceId: logWorkspace.id
     logs: [
       {
-        categoryGroup: 'allLogs'
+        category: 'StorageRead'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'StorageWrite'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'StorageDelete'
         enabled: true
         retentionPolicy: {
           enabled: false

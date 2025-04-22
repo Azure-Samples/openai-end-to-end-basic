@@ -25,7 +25,7 @@ resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' exis
   name: logWorkspaceName
 }
 
-resource acrResource 'Microsoft.ContainerRegistry/registries@2023-11-01-preview' = {
+resource acrResource 'Microsoft.ContainerRegistry/registries@2024-11-01-preview' = {
   name: acrName
   location: location
   sku: {
@@ -41,18 +41,28 @@ resource acrResource 'Microsoft.ContainerRegistry/registries@2023-11-01-preview'
     networkRuleBypassOptions: 'None'
     publicNetworkAccess: 'Enabled'
     zoneRedundancy: 'Disabled'
+    dataEndpointEnabled: true
+    metadataSearch: 'Disabled'
   }
 }
 
 //ACR diagnostic settings
 resource acrResourceDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  name: '${acrResource.name}-diagnosticSettings'
+  name: 'default'
   scope: acrResource
   properties: {
     workspaceId: logWorkspace.id
     logs: [
       {
-        categoryGroup: 'allLogs'
+        category: 'ContainerRegistryRepositoryEvents'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'ContainerRegistryLoginEvents'
         enabled: true
         retentionPolicy: {
           enabled: false

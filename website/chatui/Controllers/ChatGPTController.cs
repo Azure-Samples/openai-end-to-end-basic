@@ -51,7 +51,7 @@ public class ChatGPTController(
             return BadRequest(responseContent);
         }
 
-        _logger.LogDebug("Successful response: {Content}", responseContent);
+        _logger.LogInformation("Successful response: {Content}", responseContent);
 
         var result = JsonSerializer.Deserialize<Dictionary<string, string>>(responseContent);
         var output = result?.GetValueOrDefault(_config.ChatOutputName) ?? string.Empty;

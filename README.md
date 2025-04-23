@@ -130,14 +130,14 @@ To test this architecture, you'll be deploying a pre-built Prompt flow. The Prom
 
 1. Connect the `extract_query_from_question` Prompt flow step to your Azure OpenAI model deployment.
 
-      - For **Connection**, select 'aoai' from the dropdown menu. This is your deployed Azure OpenAI instance.
-      - For **deployment_name**, select 'gpt35' from the dropdown menu. This is the model you've deployed in that Azure OpenAI instance.
+      - For **Connection**, select 'azureaiservices_aoai' from the dropdown menu. This is your deployed Azure OpenAI instance.
+      - For **deployment_name**, select 'gpt4o' from the dropdown menu. This is the model you've deployed in that Azure OpenAI instance.
       - For **response_format**, select '{"type":"text"}' from the dropdown menu
 
 1. Connect the `augmented_chat` Prompt flow step to your Azure OpenAI model deployment.
 
-      - For **Connection**, select the same 'aoai' from the dropdown menu.
-      - For **deployment_name**, select the same 'gpt35' from the dropdown menu.
+      - For **Connection**, select the same 'azureaiservices_aoai' from the dropdown menu.
+      - For **deployment_name**, select the same 'gpt4o' from the dropdown menu.
       - For **response_format**, also select '{"type":"text"}' from the dropdown menu.
 
 1. Click **Save** on the flow.
@@ -186,7 +186,7 @@ Here you'll take your tested flow and deploy it to a managed online endpoint.
    There is a notice on the final screen that says:
 
    > Following connection(s) are using Microsoft Entra ID based authentication. You need to manually grant the endpoint identity access to the related resource of these connection(s).
-   > - aoai
+   > - azureaiservices_aoai
 
    This has already been taken care of by your IaC deployment. The managed online endpoint identity already has this permission to Azure OpenAI, so there is no action for you to take.
 
@@ -240,7 +240,7 @@ az group delete -n $RESOURCE_GROUP -y
 
 # Purge the soft delete resources
 az keyvault purge -n kv-${BASE_NAME} -l $LOCATION
-az cognitiveservices account purge -g $RESOURCE_GROUP -l $LOCATION -n oai-${BASE_NAME}
+az cognitiveservices account purge -g $RESOURCE_GROUP -l $LOCATION -n ais-${BASE_NAME}
 ```
 
 ## Contributions

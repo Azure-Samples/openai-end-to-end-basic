@@ -47,7 +47,7 @@ Follow these instructions to deploy this example to your Azure subscription, try
 
   - The subscription selected must have the following quota available in the location you'll select to deploy this implementation.
 
-    - Azure OpenAI: Standard, GPT-35-Turbo, 25K TPM
+    - Azure OpenAI: Standard, GPT-4o-mini, 10K TPM
     - Storage Accounts: 1
     - Total Cluster Dedicated Regional vCPUs: 4
     - Standard DASv4 Family Cluster Dedicated vCPUs: 4

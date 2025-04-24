@@ -15,7 +15,7 @@ param location string = resourceGroup().location
 param logWorkspaceName string
 
 // variables
-var aiStudioStorageAccountName = 'stml${baseName}'
+var aiFoundryStorageAccountName = 'stml${baseName}'
 
 // ---- Existing resources ----
 resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' existing = {
@@ -23,8 +23,8 @@ resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' exis
 }
 
 // ---- Storage resources ----
-resource aiStudioStorageAccount 'Microsoft.Storage/storageAccounts@2024-01-01' = {
-  name: aiStudioStorageAccountName
+resource aiFoundryStorageAccount 'Microsoft.Storage/storageAccounts@2024-01-01' = {
+  name: aiFoundryStorageAccountName
   location: location
   sku: {
     name: 'Standard_ZRS'
@@ -33,8 +33,8 @@ resource aiStudioStorageAccount 'Microsoft.Storage/storageAccounts@2024-01-01' =
   properties: {
     allowedCopyScope: 'AAD'
     accessTier: 'Hot'
-    allowBlobPublicAccess: true
-    allowSharedKeyAccess: true
+    allowBlobPublicAccess: false
+    allowSharedKeyAccess: false
     isSftpEnabled: false
     isHnsEnabled: false
     allowCrossTenantReplication: false
@@ -71,21 +71,96 @@ resource aiStudioStorageAccount 'Microsoft.Storage/storageAccounts@2024-01-01' =
     networkAcls: {
       bypass: 'AzureServices'
       defaultAction: 'Allow'
+      ipRules: []
+      virtualNetworkRules: []
     }
     supportsHttpsTrafficOnly: true
   }
-  resource Blob 'blobServices' existing = {
+
+  resource blob 'blobServices' = {
     name: 'default'
+    properties: {
+      cors: {
+        corsRules: [
+          {
+            allowedOrigins: [
+              'https://mlworkspace.azure.ai'
+              'https://ml.azure.com'
+              'https://*.ml.azure.com'
+              'https://ai.azure.com'
+              'https://*.ai.azure.com'
+            ]
+            allowedMethods: [
+              'GET'
+              'HEAD'
+              'PUT'
+              'DELETE'
+              'OPTIONS'
+              'POST'
+              'PATCH'
+            ]
+            maxAgeInSeconds: 1800
+            exposedHeaders: [
+              '*'
+            ]
+            allowedHeaders: [
+              '*'
+            ]
+          }
+        ]
+      }
+      deleteRetentionPolicy: {
+        allowPermanentDelete: false
+        enabled: false
+      }
+    }
+    
   }
-  resource File 'fileServices' existing = {
+
+  resource file 'fileServices' = {
     name: 'default'
+    properties: {
+      cors: {
+        corsRules: [
+          {
+            allowedOrigins: [
+              'https://mlworkspace.azure.ai'
+              'https://ml.azure.com'
+              'https://*.ml.azure.com'
+              'https://ai.azure.com'
+              'https://*.ai.azure.com'
+            ]
+            allowedMethods: [
+              'GET'
+              'HEAD'
+              'PUT'
+              'DELETE'
+              'OPTIONS'
+              'POST'
+              'PATCH'
+            ]
+            maxAgeInSeconds: 1800
+            exposedHeaders: [
+              '*'
+            ]
+            allowedHeaders: [
+              '*'
+            ]
+          }
+        ]
+      }
+      shareDeleteRetentionPolicy: {
+        days: 7
+        enabled: true
+      }
+    }
   }
 }
 
 @description('Azure AI Foundry\'s blob storage account diagnostic settings.')
 resource aiStudioStorageAccountBlobDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: 'default'
-  scope: aiStudioStorageAccount::Blob
+  scope: aiFoundryStorageAccount::blob
   properties: {
     workspaceId: logWorkspace.id
     logs: [
@@ -121,7 +196,7 @@ resource aiStudioStorageAccountBlobDiagSettings 'Microsoft.Insights/diagnosticSe
 @description('Azure AI Foundry\'s file storage account diagnostic settings.')
 resource aiStudioStorageAccountFileDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: 'default'
-  scope: aiStudioStorageAccount::File
+  scope: aiFoundryStorageAccount::file
   properties: {
     workspaceId: logWorkspace.id
     logs: [
@@ -154,5 +229,5 @@ resource aiStudioStorageAccountFileDiagSettings 'Microsoft.Insights/diagnosticSe
   }
 }
 
-@description('The name of the ML storage account.')
-output aiStudioStorageAccountName string = aiStudioStorageAccount.name
+@description('The name of the AI Foundry storage account.')
+output aiFoundryStorageAccountName string = aiFoundryStorageAccount.name

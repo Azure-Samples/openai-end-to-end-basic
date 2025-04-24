@@ -14,12 +14,12 @@ param location string = resourceGroup().location
 param applicationInsightsName string
 param containerRegistryName string
 param keyVaultName string
-param aiStudioStorageAccountName string
+param aiFoundryStorageAccountName string
 
 @description('The name of the workload\'s existing Log Analytics workspace.')
 param logWorkspaceName string
 
-param openAiResourceName string
+param azureAiServicesResourceName string
 param yourPrincipalId string
 
 // ---- Existing resources ----
@@ -32,20 +32,20 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing
   name: applicationInsightsName
 }
 
-resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-11-01-preview' existing = {
+resource containerRegistry 'Microsoft.ContainerRegistry/registries@2024-11-01-preview' existing = {
   name: containerRegistryName
 }
 
-resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' existing = {
+resource keyVault 'Microsoft.KeyVault/vaults@2024-11-01' existing = {
   name: keyVaultName
 }
 
-resource aiStudioStorageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' existing = {
-  name: aiStudioStorageAccountName
+resource aiStudioStorageAccount 'Microsoft.Storage/storageAccounts@2024-01-01' existing = {
+  name: aiFoundryStorageAccountName
 }
 
-resource openAiAccount 'Microsoft.CognitiveServices/accounts@2024-10-01' existing = {
-  name: openAiResourceName
+resource azureAiServices 'Microsoft.CognitiveServices/accounts@2024-10-01' existing = {
+  name: azureAiServicesResourceName
 }
 
 @description('Built-in Role: [Cognitive Services OpenAI User](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#cognitive-services-openai-user)')
@@ -133,8 +133,8 @@ resource blobStorageContributorForUserRoleAssignment 'Microsoft.Authorization/ro
 
 @description('Assign your user the ability to invoke models in Azure OpenAI. This is needed to execute the Prompt flow from within in the Azure AI Foundry portal.')
 resource cognitiveServicesOpenAiUserForUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  scope: openAiAccount
-  name: guid(openAiAccount.id, yourPrincipalId, cognitiveServicesOpenAiUserRole.id)
+  scope: azureAiServices
+  name: guid(azureAiServices.id, yourPrincipalId, cognitiveServicesOpenAiUserRole.id)
   properties: {
     roleDefinitionId: cognitiveServicesOpenAiUserRole.id
     principalType: 'User'
@@ -159,8 +159,13 @@ resource aiHub 'Microsoft.MachineLearningServices/workspaces@2025-01-01-preview'
     description: 'Hub to support the Microsoft Learn Azure OpenAI basic chat implementation. https://learn.microsoft.com/azure/architecture/ai-ml/architecture/basic-openai-e2e-chat'
     publicNetworkAccess: 'Enabled' // Production readiness change: The "Baseline" architecture adds ingress and egress network control over this "Basic" implementation.
     ipAllowlist: []
+    networkAcls: {
+      defaultAction: 'Allow' // Production readiness change: The "Baseline" architecture adds ingress and egress network control over this "Basic" implementation.
+      ipRules: []
+    }
     serverlessComputeSettings: null
     enableServiceSideCMKEncryption: false
+    provisionNetworkNow: false
     managedNetwork: {
       isolationMode: 'Disabled' // Production readiness change: The "Baseline" architecture adds ingress and egress network control over this "Basic" implementation.
     }
@@ -180,20 +185,20 @@ resource aiHub 'Microsoft.MachineLearningServices/workspaces@2025-01-01-preview'
     enableSoftwareBillOfMaterials: true
   }
 
-  resource aoaiConnection 'connections' = {
-    name: 'aoai'
+  resource azureAiServicesConnection 'connections' = {
+    name: 'azureaiservices'
     properties: {
       authType: 'AAD'
-      category: 'AzureOpenAI'
+      category: 'AIServices'
       isSharedToAll: true
       useWorkspaceManagedIdentity: true
-      peRequirement: 'NotRequired'
+      peRequirement: 'NotRequired'  // Production readiness change: The "Baseline" architecture adds ingress and egress network control over this "Basic" implementation.
       sharedUserList: []
       metadata: {
         ApiType: 'Azure'
-        ResourceId: openAiAccount.id
+        ResourceId: azureAiServices.id
       }
-      target: openAiAccount.properties.endpoint
+      target: azureAiServices.properties.endpoint
     }
   }
 }
@@ -220,7 +225,7 @@ resource aiHubDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-pre
 // ---- Chat project ----
 
 @description('This is a container for the chat project.')
-resource chatProject 'Microsoft.MachineLearningServices/workspaces@2024-10-01' = {
+resource chatProject 'Microsoft.MachineLearningServices/workspaces@2025-01-01-preview' = {
   name: 'aiproj-chat'
   location: location
   kind: 'Project'
@@ -235,7 +240,12 @@ resource chatProject 'Microsoft.MachineLearningServices/workspaces@2024-10-01' =
     friendlyName: 'Chat with Wikipedia project'
     description: 'Project to contain the "Chat with Wikipedia" example Prompt flow that is used as part of the Microsoft Learn Azure OpenAI basic chat implementation. https://learn.microsoft.com/azure/architecture/ai-ml/architecture/basic-openai-e2e-chat'
     v1LegacyMode: false
-    publicNetworkAccess: 'Enabled'
+    hbiWorkspace: false
+    allowRoleAssignmentOnRG: false // Require role assignments at the resource level.
+    enableDataIsolation: true
+    systemDatastoresAuthMode: 'identity'
+    enableServiceSideCMKEncryption: false
+    publicNetworkAccess: 'Enabled' // Production readiness change: The "Baseline" architecture adds ingress and egress network control over this "Basic" implementation.
     hubResourceId: aiHub.id
   }
 
@@ -273,8 +283,8 @@ resource projectSecretsReaderForOnlineEndpointRoleAssignment 'Microsoft.Authoriz
 
 @description('Assign the online endpoint the ability to invoke models in Azure OpenAI. This is needed to execute the Prompt flow from the managed endpoint.')
 resource projectOpenAIUserForOnlineEndpointRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  scope: openAiAccount
-  name: guid(openAiAccount.id, chatProject::endpoint.id, cognitiveServicesOpenAiUserRole.id)
+  scope: azureAiServices
+  name: guid(azureAiServices.id, chatProject::endpoint.id, cognitiveServicesOpenAiUserRole.id)
   properties: {
     roleDefinitionId: cognitiveServicesOpenAiUserRole.id
     principalType: 'ServicePrincipal'

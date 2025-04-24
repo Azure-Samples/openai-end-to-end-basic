@@ -9,19 +9,17 @@ param location string = resourceGroup().location
 @description('The name of the workload\'s existing Log Analytics workspace.')
 param logWorkspaceName string
 
-//variables
-var openaiName = 'oai-${baseName}'
-
 resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' existing = {
   name: logWorkspaceName
 }
 
-resource openAiAccount 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
-  name: openaiName
+@description('Use Azure AI Services as a common gateway to other Azure AI services, such as Azure OpenAI.')
+resource azureAiServices 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
+  name: 'ais-${baseName}'
   location: location
-  kind: 'OpenAI'
+  kind: 'AIServices'
   properties: {
-    customSubDomainName: 'oai-${baseName}'
+    customSubDomainName: 'ais-${toLower(baseName)}'
     publicNetworkAccess: 'Enabled' // Production readiness change: This sample uses identity as the perimeter. Production scenarios should layer in network perimeter control as well.
     disableLocalAuth: true
   }
@@ -33,118 +31,116 @@ resource openAiAccount 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
   resource blockingFilter 'raiPolicies' = {
     name: 'blocking-filter'
     properties: {
-      basePolicyName: 'Microsoft.Default'
+      basePolicyName: 'Microsoft.DefaultV2'
       mode: 'Default'
       contentFilters: [
         /* PROMPT FILTERS */
         {
-          #disable-next-line BCP037
-          name: 'hate'
+          name: 'Hate'
           blocking: true
           enabled: true
-          source: 'Prompt'
           severityThreshold: 'Low'
+          source: 'Prompt'
         }
         {
-          #disable-next-line BCP037
-          name: 'sexual'
+          name: 'Sexual'
           blocking: true
           enabled: true
-          source: 'Prompt'
           severityThreshold: 'Low'
+          source: 'Prompt'
         }
         {
-          #disable-next-line BCP037
-          name: 'selfharm'
+          name: 'Selfharm'
           blocking: true
           enabled: true
-          source: 'Prompt'
           severityThreshold: 'Low'
+          source: 'Prompt'
         }
         {
-          #disable-next-line BCP037
-          name: 'violence'
+          name: 'Violence'
           blocking: true
           enabled: true
-          source: 'Prompt'
           severityThreshold: 'Low'
+          source: 'Prompt'
         }
         {
-          #disable-next-line BCP037
-          name: 'jailbreak'
+          name: 'Jailbreak'
           blocking: true
           enabled: true
           source: 'Prompt'
-          severityThreshold: 'Low'
         }
         {
-          #disable-next-line BCP037
-          name: 'profanity'
+          name: 'Indirect Attack'
           blocking: true
           enabled: true
           source: 'Prompt'
-          severityThreshold: 'Low'
+        }
+        {
+          name: 'Profanity'
+          blocking: true
+          enabled: true
+          source: 'Prompt'
         }
         /* COMPLETION FILTERS */
         {
-          #disable-next-line BCP037
-          name: 'hate'
+          name: 'Hate'
           blocking: true
           enabled: true
-          source: 'Completion'
           severityThreshold: 'Low'
+          source: 'Completion'
         }
         {
-          #disable-next-line BCP037
-          name: 'sexual'
+          name: 'Sexual'
           blocking: true
           enabled: true
-          source: 'Completion'
           severityThreshold: 'Low'
+          source: 'Completion'
         }
         {
-          #disable-next-line BCP037
-          name: 'selfharm'
+          name: 'Selfharm'
           blocking: true
           enabled: true
-          source: 'Completion'
           severityThreshold: 'Low'
+          source: 'Completion'
         }
         {
-          #disable-next-line BCP037
-          name: 'violence'
+          name: 'Violence'
           blocking: true
           enabled: true
-          source: 'Completion'
           severityThreshold: 'Low'
+          source: 'Completion'
         }
         {
-          #disable-next-line BCP037
-          name: 'profanity'
+          name: 'Protected Material Text'
           blocking: true
           enabled: true
           source: 'Completion'
-          severityThreshold: 'Low'
+        }
+        {
+          name: 'Protected Material Code'
+          blocking: true
+          enabled: true
+          source: 'Completion'
         }
       ]
     }
   }
 
-  @description('Add a gpt-3.5 turbo deployment.')
-  resource gpt35 'deployments' = {
-    name: 'gpt35'
+  @description('Add a GPT-4o mini deployment.')
+  resource gpt4o 'deployments' = {
+    name: 'gpt4o'
     sku: {
       name: 'Standard'
-      capacity: 25
+      capacity: 4
     }
     properties: {
       model: {
         format: 'OpenAI'
-        name: 'gpt-35-turbo'
-        version: '0125' // If your selected region doesn't support this version, please change it.
-                        // az cognitiveservices model list -l $LOCATION --query "sort([?model.name == 'gpt-35-turbo' && kind == 'OpenAI'].model.version)" -o tsv
+        name: 'gpt-4o-mini'
+        version: '2024-07-18' // If your selected region doesn't support this version, please change the version to a supported one.
+                              // az cognitiveservices model list -l $LOCATION --query "sort([?model.name == 'gpt-4o-mini' && kind == 'OpenAI'].model.version)" -o tsv
       }
-      raiPolicyName: openAiAccount::blockingFilter.name
+      raiPolicyName: azureAiServices::blockingFilter.name
       versionUpgradeOption: 'OnceNewDefaultVersionAvailable' // Production readiness change: Always be explicit about model versions, use 'NoAutoUpgrade' to prevent version changes.
     }
   }
@@ -153,7 +149,7 @@ resource openAiAccount 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
 //OpenAI diagnostic settings
 resource openAIDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: 'default'
-  scope: openAiAccount
+  scope: azureAiServices
   properties: {
     workspaceId: logWorkspace.id
     logs: [
@@ -196,4 +192,4 @@ resource openAIDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-pr
 
 // ---- Outputs ----
 
-output openAiResourceName string = openAiAccount.name
+output azureAiServicesResourceName string = azureAiServices.name

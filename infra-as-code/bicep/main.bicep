@@ -93,11 +93,11 @@ module aiStudio 'machinelearning.bicep' = {
     baseName: baseName
     applicationInsightsName: appInsightsModule.outputs.applicationInsightsName
     keyVaultName: keyVaultModule.outputs.keyVaultName
-    aiStudioStorageAccountName: storageModule.outputs.aiStudioStorageAccountName
+    aiFoundryStorageAccountName: storageModule.outputs.aiFoundryStorageAccountName
     containerRegistryName: 'cr${baseName}'
     yourPrincipalId: yourPrincipalId
     logWorkspaceName: logWorkspace.name
-    openAiResourceName: openaiModule.outputs.openAiResourceName
+    azureAiServicesResourceName: openaiModule.outputs.azureAiServicesResourceName
   }
 }
 

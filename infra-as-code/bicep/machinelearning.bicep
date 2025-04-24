@@ -513,7 +513,7 @@ resource chatProjectEndpointDiagSettings 'Microsoft.Insights/diagnosticSettings@
 // TODO: Figure out if the key is something that's reliably predictable, if so, just use that instead of creating
 //       a copy of it.
 @description('Key Vault Secret: The Managed Online Endpoint key to be referenced from the Chat UI app.')
-resource managedEndpointPrimaryKeyEntry 'Microsoft.KeyVault/vaults/secrets@2024-04-01-preview' = {
+resource managedEndpointPrimaryKeyEntry 'Microsoft.KeyVault/vaults/secrets@2024-11-01' = {
   parent: keyVault
   name: 'chatApiKey'
   properties: {

@@ -19,7 +19,7 @@ var appName = 'app-${baseName}'
 
 // ---- Existing resources ----
 
-resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = {
+resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' existing = {
   name: logWorkspaceName
 }
 
@@ -29,7 +29,7 @@ resource keyVaultSecretsUserRole 'Microsoft.Authorization/roleDefinitions@2022-0
   scope: subscription()
 }
 
-resource chatProject 'Microsoft.MachineLearningServices/workspaces@2024-07-01-preview' existing = {
+resource chatProject 'Microsoft.MachineLearningServices/workspaces@2025-01-01-preview' existing = {
   name: 'aiproj-chat'
 
   resource scoreEndpoint 'onlineEndpoints' existing = {
@@ -37,7 +37,7 @@ resource chatProject 'Microsoft.MachineLearningServices/workspaces@2024-07-01-pr
   }
 }
 
-resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' existing = {
+resource keyVault 'Microsoft.KeyVault/vaults@2024-11-01' existing = {
   name: keyVaultName
 
   resource chatApiKey 'secrets' existing = {
@@ -48,7 +48,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' existing = {
 // ---- Web App resources ----
 
 // Managed Identity for App Service
-resource appServiceManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+resource appServiceManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
   name: 'id-${appName}'
   location: location
 }

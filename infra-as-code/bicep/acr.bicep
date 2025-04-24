@@ -21,7 +21,7 @@ var acrName = 'cr${baseName}'
 
 // ---- Existing resources ----
 
-resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = {
+resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' existing = {
   name: logWorkspaceName
 }
 

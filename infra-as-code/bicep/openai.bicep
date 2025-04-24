@@ -19,7 +19,7 @@ resource azureAiServices 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
   location: location
   kind: 'AIServices'
   properties: {
-    customSubDomainName: 'ais-${baseName}'
+    customSubDomainName: 'ais-${toLower(baseName)}'
     publicNetworkAccess: 'Enabled' // Production readiness change: This sample uses identity as the perimeter. Production scenarios should layer in network perimeter control as well.
     disableLocalAuth: true
   }

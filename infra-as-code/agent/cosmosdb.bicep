@@ -22,7 +22,7 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2025-02
 /*** NEW RESOURCES ***/
 
 resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2024-12-01-preview' = {
-  name: 'cdbAgentThreadStorage'
+  name: 'cdbagentthreadstorage'
   location: resourceGroup().location
   kind: 'GlobalDocumentDB'
   properties: {

@@ -5,7 +5,7 @@ param privateEndpointSubnetResourceId string
 
 /*** EXISTING RESOURCES ***/
 
-resource blobStorageLinkedPrivateDnsZone 'Microsoft.Network/privateDnsZones@2024-06-01' = {
+resource blobStorageLinkedPrivateDnsZone 'Microsoft.Network/privateDnsZones@2024-06-01' existing = {
   name: 'privatelink.blob.core.windows.net'
 }
 

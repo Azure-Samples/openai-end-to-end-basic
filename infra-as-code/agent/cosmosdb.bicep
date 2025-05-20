@@ -48,33 +48,6 @@ resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2024-12-01-previ
     name: '00000000-0000-0000-0000-000000000002'
   }
 
-  /*
-  resource projectToCosmos 'sqlRoleAssignments' = {
-    name: guid(aiFoundry::project.id, 'CosmosDBDataWriter', cosmosdb.id)
-    properties: {
-      roleDefinitionId: cosmosdb::writer.id
-      principalId: aiFoundry::project.identity.principalId
-      scope: cosmosdb.id
-    }
-    dependsOn: [
-      assignDebugUserToCosmosAccountReader
-    ]
-  }
-
-  resource hubToCosmos 'sqlRoleAssignments' = {
-    name: guid(aiFoundry.id, 'CosmosDBDataWriter', cosmosdb.id)
-    properties: {
-      roleDefinitionId: cosmosdb::writer.id
-      principalId: aiFoundry.identity.principalId
-      scope: cosmosdb.id
-    }
-    dependsOn: [
-      assignDebugUserToCosmosAccountReader
-    ]
-  }
-
-  */
-
   resource userToCosmos 'sqlRoleAssignments' = {
     name: guid(debugUserPrincipalId, writer.id, cosmosDbAccount.id)
     properties: {
@@ -187,5 +160,7 @@ resource assignDebugUserToCosmosAccountReader 'Microsoft.Authorization/roleAssig
     principalType: 'User'
   }
 }
+
+/*** OUTPUTS ***/
 
 output cosmosDbAccountName string = cosmosDbAccount.name

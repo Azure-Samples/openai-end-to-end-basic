@@ -38,6 +38,8 @@ resource azureAiSearchService 'Microsoft.Search/searchServices@2025-02-01-previe
   }
 }
 
+// Azure diagnostics
+
 resource azureDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: 'default'
   scope: azureAiSearchService
@@ -92,5 +94,7 @@ resource aiSearchPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-05-01'
     }
   }
 }
+
+/*** OUTPUTS ***/
 
 output aiSearchName string = azureAiSearchService.name

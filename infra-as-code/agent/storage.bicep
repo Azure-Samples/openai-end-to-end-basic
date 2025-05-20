@@ -19,7 +19,7 @@ resource agentStorageAccount 'Microsoft.Storage/storageAccounts@2024-01-01' = {
   name: 'stg${uniqueSuffix}'
   location: resourceGroup().location
   sku: {
-    name: 'Standard_LRS'
+    name: 'Standard_ZRS'
   }
   kind: 'StorageV2'
   properties: {
@@ -116,5 +116,7 @@ resource azureDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-prev
     ]
   }
 }
+
+/*** OUTPUTS ***/
 
 output storageAccountName string = agentStorageAccount.name

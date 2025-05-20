@@ -14,13 +14,56 @@ resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2024-12-01-previ
     name: '00000000-0000-0000-0000-000000000002'
   }
 
-  resource projectToCosmos 'sqlRoleAssignments' = {
-    name: guid(aiFoundry::project.id, cosmosDbAccount::writer.id, cosmosDbAccount.id)
+  resource agentDatabase 'sqlDatabases' existing = {
+    name: 'enterprise_memory'
+
+    resource userThreadContainer 'containers' existing = {
+      name: '${workspaceId}-thread-message-store'
+    }
+
+    resource systemThreadContainer 'containers' existing = {
+      name: '${workspaceId}-system-thread-message-store'
+    }
+
+    resource entityStoreContainer 'containers' existing = {
+      name: '${workspaceId}-agent-entity-store'
+    }
+  }
+
+  resource projectUserThreadContainerWriter 'sqlRoleAssignments' = {
+    name: guid(aiFoundry::project.id, cosmosDbAccount::writer.id, cosmosDbAccount::agentDatabase::userThreadContainer.id)
     properties: {
       roleDefinitionId: cosmosDbAccount::writer.id
       principalId: aiFoundry::project.identity.principalId
-      scope: cosmosDbAccount.id
+      scope: cosmosDbAccount::agentDatabase::userThreadContainer.id
     }
+    dependsOn: [
+      aiFoundry::project::threadStorageConnection
+    ]
+  }
+
+  resource projectSystemThreadContainerWriter 'sqlRoleAssignments' = {
+    name: guid(aiFoundry::project.id, cosmosDbAccount::writer.id, cosmosDbAccount::agentDatabase::systemThreadContainer.id)
+    properties: {
+      roleDefinitionId: cosmosDbAccount::writer.id
+      principalId: aiFoundry::project.identity.principalId
+      scope: cosmosDbAccount::agentDatabase::systemThreadContainer.id
+    }
+    dependsOn: [
+      aiFoundry::project::threadStorageConnection
+    ]
+  }
+
+  resource projectEntityContainerWriter 'sqlRoleAssignments' = {
+    name: guid(aiFoundry::project.id, cosmosDbAccount::writer.id, cosmosDbAccount::agentDatabase::entityStoreContainer.id)
+    properties: {
+      roleDefinitionId: cosmosDbAccount::writer.id
+      principalId: aiFoundry::project.identity.principalId
+      scope: cosmosDbAccount::agentDatabase::entityStoreContainer.id
+    }
+    dependsOn: [
+      aiFoundry::project::threadStorageConnection
+    ]
   }
 }
 
@@ -28,8 +71,35 @@ resource agentStorageAccount 'Microsoft.Storage/storageAccounts@2024-01-01' exis
   name: existingStorageAccountName
 }
 
-resource azureAiSearchService 'Microsoft.Search/searchServices@2025-02-01-preview' existing = {
+resource azureAISearchService 'Microsoft.Search/searchServices@2025-02-01-preview' existing = {
   name: existingAISearchAccountName
+}
+
+resource azureAISearchServiceContributorRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  name: '7ca78c08-252a-4471-8644-bb5ff32d4ba0'
+  scope: subscription()
+}
+
+resource azureAISearchIndexDataContributorRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  name: '8ebe5a00-799e-43f5-93ac-243d3dce84a7'
+  scope: subscription()
+}
+
+// Storage Blob Data Contributor
+resource storageBlobDataContributorRole 'Microsoft.Authorization/roleDefinitions@2022-05-01-preview' existing = {
+  name: 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
+  scope: subscription()
+}
+
+// Storage Blob Data Owner Role
+resource storageBlobDataOwnerRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  name: 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b'
+  scope: subscription()
+}
+
+resource cosmosDbOperatorRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  name: '230815da-be43-4aae-9cb4-875f7bd000aa'
+  scope: subscription()
 }
 
 /*** NEW RESOURCES ***/
@@ -84,27 +154,29 @@ resource aiFoundry 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' exi
         }
       }
       dependsOn: [
-        projectBlobDataOwnerAssignment
+        projectBlobDataContributorAssignment
         projectBlobDataOwnerConditionalAssignment
+        threadStorageConnection // Single thread these connections, else conflict errors tend to happen
       ]
     }
 
     // Create project connection to Azure AI Search, dependency for Azure AI Agent Service
     resource aiSearchConnection 'connections' = {
-      name: azureAiSearchService.name
+      name: azureAISearchService.name
       properties: {
         category: 'CognitiveSearch'
-        target: azureAiSearchService.properties.endpoint //'https://${azureAiSearchService.name}.search.windows.net'
+        target: azureAISearchService.properties.endpoint //'https://${azureAiSearchService.name}.search.windows.net'
         authType: 'AAD'
         metadata: {
           ApiType: 'Azure'
-          ResourceId: azureAiSearchService.id
-          location: azureAiSearchService.location
+          ResourceId: azureAISearchService.id
+          location: azureAISearchService.location
         }
       }
       dependsOn: [
         projectAISearchIndexDataContributorAssignment
         projectAISearchContributorAssignment
+        storageConnection // Single thread these connections, else conflict errors tend to happen
       ]
     }
 
@@ -129,60 +201,59 @@ resource aiFoundry 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' exi
   }
 }
 
+var workspaceId = aiFoundry::project.properties.internalId
+
 // Role assignments
 
-resource projectDbCosmosDbOperatorAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
-  name: guid(aiFoundry::project.id, '230815da-be43-4aae-9cb4-875f7bd000aa', cosmosDbAccount.id)
+resource projectDbCosmosDbOperatorAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(aiFoundry::project.id, cosmosDbOperatorRole.id, cosmosDbAccount.id)
   scope: cosmosDbAccount
   properties: {
-    roleDefinitionId: subscriptionResourceId(
-      'Microsoft.Authorization/roleDefinitions',
-      '230815da-be43-4aae-9cb4-875f7bd000aa'
-    )
+    roleDefinitionId: cosmosDbOperatorRole.id
     principalId: aiFoundry::project.identity.principalId
     principalType: 'ServicePrincipal'
   }
 }
 
-resource projectBlobDataOwnerAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
-  name: guid(aiFoundry::project.id, 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b', agentStorageAccount.id)
+resource projectBlobDataContributorAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(aiFoundry::project.id, storageBlobDataContributorRole.id, agentStorageAccount.id)
   scope: agentStorageAccount
   properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b') // Storage Blob Data Owner
+    roleDefinitionId: storageBlobDataContributorRole.id
     principalId: aiFoundry::project.identity.principalId
     principalType: 'ServicePrincipal'
   }
 }
 
-// Assign Storage Blob Data Owner role
+
 resource projectBlobDataOwnerConditionalAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(aiFoundry::project.id, 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b', agentStorageAccount.id)
+  name: guid(aiFoundry::project.id, storageBlobDataOwnerRole.id, agentStorageAccount.id)
   scope: agentStorageAccount
   
   properties: {
     principalId: aiFoundry::project.identity.principalId
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b')
+    roleDefinitionId: storageBlobDataOwnerRole.id
     principalType: 'ServicePrincipal'
     conditionVersion: '2.0'
-    condition: '((!(ActionMatches{\'Microsoft.Storage/storageAccounts/blobServices/containers/blobs/tags/read\'})  AND  !(ActionMatches{\'Microsoft.Storage/storageAccounts/blobServices/containers/blobs/filter/action\'}) AND  !(ActionMatches{\'Microsoft.Storage/storageAccounts/blobServices/containers/blobs/tags/write\'}) ) OR (@Resource[Microsoft.Storage/storageAccounts/blobServices/containers:name] StringStartsWithIgnoreCase \'${aiFoundry::project.properties.internalId}\' AND @Resource[Microsoft.Storage/storageAccounts/blobServices/containers:name] StringLikeIgnoreCase \'*-azureml-agent\'))'
+    condition: '((!(ActionMatches{\'Microsoft.Storage/storageAccounts/blobServices/containers/blobs/tags/read\'})  AND  !(ActionMatches{\'Microsoft.Storage/storageAccounts/blobServices/containers/blobs/filter/action\'}) AND  !(ActionMatches{\'Microsoft.Storage/storageAccounts/blobServices/containers/blobs/tags/write\'}) ) OR (@Resource[Microsoft.Storage/storageAccounts/blobServices/containers:name] StringStartsWithIgnoreCase \'${workspaceId}\' AND @Resource[Microsoft.Storage/storageAccounts/blobServices/containers:name] StringLikeIgnoreCase \'*-azureml-agent\'))'
   }
 }
 
-resource projectAISearchContributorAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
-  name: guid(aiFoundry::project.id, '7ca78c08-252a-4471-8644-bb5ff32d4ba0', azureAiSearchService.id)
-  scope: azureAiSearchService
+resource projectAISearchContributorAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(aiFoundry::project.id, azureAISearchServiceContributorRole.id, azureAISearchService.id)
+  scope: azureAISearchService
   properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7ca78c08-252a-4471-8644-bb5ff32d4ba0') // Search Contributor
+    roleDefinitionId: azureAISearchServiceContributorRole.id
     principalId: aiFoundry::project.identity.principalId
     principalType: 'ServicePrincipal'
   }
 }
 
 resource projectAISearchIndexDataContributorAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
-  name: guid(aiFoundry::project.id, '8ebe5a00-799e-43f5-93ac-243d3dce84a7', azureAiSearchService.id)
-  scope: azureAiSearchService
+  name: guid(aiFoundry::project.id, azureAISearchIndexDataContributorRole.id, azureAISearchService.id)
+  scope: azureAISearchService
   properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '8ebe5a00-799e-43f5-93ac-243d3dce84a7') // Search Index Data Contributor
+    roleDefinitionId: azureAISearchIndexDataContributorRole.id
     principalId: aiFoundry::project.identity.principalId
     principalType: 'ServicePrincipal'
   }

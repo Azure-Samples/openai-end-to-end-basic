@@ -1,11 +1,5 @@
 targetScope = 'resourceGroup'
 
-/*** EXISTING RESOURCES ***/
-
-resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2025-02-01' existing = {
-  name: 'log-workload'
-}
-
 /*** NEW RESOURCES ***/
 
 resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-05-01' = {
@@ -30,7 +24,7 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-05-01' = {
               }
             }
           ]
-          privateEndpointNetworkPolicies: 'Disabled'
+          privateEndpointNetworkPolicies: 'Enabled'
           privateLinkServiceNetworkPolicies: 'Enabled'
           defaultOutboundAccess: true
         }
@@ -39,16 +33,24 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-05-01' = {
         name: 'private-endpoints'
         properties: {
           addressPrefix: '192.168.1.0/24'
-          privateEndpointNetworkPolicies: 'Disabled'
+          privateEndpointNetworkPolicies: 'Enabled'
           privateLinkServiceNetworkPolicies: 'Enabled'
           defaultOutboundAccess: false
         }
       }
     ]
   }
+
+  resource agentSubnet 'subnets' existing = {
+    name: 'agent'
+  }
+
+  resource privateEndpointSubnet 'subnets' existing = {
+    name: 'private-endpoints'
+  }
 }
 
-// Private DNS Zones used in this workload
+// Create and link Private DNS Zones used in this workload
 
 resource cognitiveServicesPrivateDnsZone 'Microsoft.Network/privateDnsZones@2024-06-01' = {
   name: 'privatelink.cognitiveservices.azure.com'
@@ -152,4 +154,7 @@ resource cosmosDbPrivateDnsZone 'Microsoft.Network/privateDnsZones@2024-06-01' =
   }
 }
 
-output virtualNetworkName string = virtualNetwork.name
+/*** OUTPUTS ***/
+
+output virtualNetworkAgentSubnetResourceId string = virtualNetwork::agentSubnet.id
+output virtualNetworkPrivateEndpointSubnetResourceId string = virtualNetwork::privateEndpointSubnet.id

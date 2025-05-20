@@ -46,7 +46,6 @@ resource aiFoundry 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' = {
   properties: {
     customSubDomainName: aiFoundryName
     allowProjectManagement: true // Azure AI Foundry hub
-    //defaultProject: 'projchat'
     disableLocalAuth: true
     networkAcls: {
       bypass: 'None'
@@ -145,7 +144,7 @@ resource aiFoundryPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-05-01
         {
           name: 'aifoundry'
           properties: {
-            privateDnsZoneId: cognitiveServicesLinkedPrivateDnsZone.id
+            privateDnsZoneId: aiFoundryLinkedPrivateDnsZone.id
           }
         }
         {
@@ -208,5 +207,7 @@ resource azureDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-prev
     ]
   }
 }
+
+/*** OUTPUTS ***/
 
 output aiFoundryName string = aiFoundry.name

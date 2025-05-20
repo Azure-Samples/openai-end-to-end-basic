@@ -180,24 +180,18 @@ resource aiFoundry 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' exi
       ]
     }
 
-    /*
-    resource projectAgentCapability 'capabilityHosts' = {
-      name: 'projchat-capabilities'
+    resource aiAgentService 'capabilityHosts' = {
+      name: 'projectagents'
       properties: {
         capabilityHostKind: 'Agents'
-        storageConnections: [storageConnection.name]
-        threadStorageConnections: [threadStorageConnection.name]
-        vectorStoreConnections: [agentSearchConnection.name]
+        vectorStoreConnections: ['${aiSearchConnection.name}']
+        storageConnections: ['${storageConnection.name}']
+        threadStorageConnections: ['${threadStorageConnection.name}']
       }
       dependsOn: [
-        //agent
-        storageBlobDataOwnerAssignment
-        roleAssignmentSubnet
-        roleAssignmentSubnet2
-        roleAssignmentVnet
-        roleAssignmentVnet2
+        deploymentScript
       ]
-    }*/
+    }
   }
 }
 
@@ -257,6 +251,22 @@ resource projectAISearchIndexDataContributorAssignment 'Microsoft.Authorization/
     principalId: aiFoundry::project.identity.principalId
     principalType: 'ServicePrincipal'
   }
+}
+
+// Deployment script that just waits for 1 minute to ensure the agent host is ready
+resource deploymentScript 'Microsoft.Resources/deploymentScripts@2023-08-01' = {
+  name: 'wait-for-agent-host'
+  location: resourceGroup().location
+  kind: 'AzureCLI'
+  properties: {
+    azCliVersion: '2.52.0'
+    scriptContent: 'sleep 60'
+    retentionInterval: 'PT1H'
+  }
+
+  dependsOn: [
+    cosmosDbAccount::projectEntityContainerWriter
+  ]
 }
 
 

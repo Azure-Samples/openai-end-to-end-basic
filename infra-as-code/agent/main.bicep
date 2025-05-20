@@ -1,4 +1,6 @@
-param name string = 'ckchatm01'
+targetScope = 'resourceGroup'
+
+param uniqueSuffix string
 param userPrincipalId string
 
 // Step 0: Create log sink for the workload
@@ -25,7 +27,7 @@ module deployAIAgentServiceDependencies 'ai-agent-service-dependencies.bicep' = 
   name: 'deployAIAgentServiceDependencies'
   scope: resourceGroup()
   params: {
-    uniqueSuffix: name
+    uniqueSuffix: uniqueSuffix
     userPrincipalId: userPrincipalId
     privateEndpointSubnetResourceId: deployVirtualNetwork.outputs.virtualNetworkPrivateEndpointSubnetResourceId
   }
@@ -37,7 +39,7 @@ module deployAzureAIFoundry 'ai-foundry.bicep' = {
     agentSubnetResourceId: deployVirtualNetwork.outputs.virtualNetworkAgentSubnetResourceId
     aiFoundryPortalUserPrincipalId: userPrincipalId
     privateEndpointSubnetResourceId: deployVirtualNetwork.outputs.virtualNetworkPrivateEndpointSubnetResourceId
-    uniqueSuffix: name
+    uniqueSuffix: uniqueSuffix
   }
 }
 

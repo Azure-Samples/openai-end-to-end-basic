@@ -5,7 +5,7 @@ targetScope = 'resourceGroup'
 param uniqueSuffix string
 param userPrincipalId string
 
-// Step 0: Create log sink for the workload
+// Step 1: Create log sink for the workload
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2025-02-01' = {
   name: 'log-workload'
   location: resourceGroup().location
@@ -25,14 +25,21 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2025-02
   }
 }
 
-// Step 1: Establish the private network for the workload
+// Step 2: Establish the private network for the workload
 module deployVirtualNetwork 'network.bicep' = {
   name: 'deployVirtualNetwork'
   scope: resourceGroup()
   params: {}
 }
 
-// Step 2: Deploy the Azure AI Agent dependencies
+// Step 3: Control egress traffic through an Azure Firewall
+module deployAzureFirewall 'azure-firewall.bicep' = {
+  name: 'deployAzureFirewall'
+  scope: resourceGroup()
+  params: {}
+}
+
+// Step 4: Deploy the Azure AI Agent dependencies
 module deployAIAgentServiceDependencies 'ai-agent-service-dependencies.bicep' = {
   name: 'deployAIAgentServiceDependencies'
   scope: resourceGroup()
@@ -41,9 +48,12 @@ module deployAIAgentServiceDependencies 'ai-agent-service-dependencies.bicep' = 
     userPrincipalId: userPrincipalId
     privateEndpointSubnetResourceId: deployVirtualNetwork.outputs.virtualNetworkPrivateEndpointSubnetResourceId
   }
+  dependsOn: [
+    deployAzureFirewall  // Makes sure that egress traffic is controlled before workload resources start being deployed
+  ]
 }
 
-// Step 3: Deploy Azure AI Foundry (without any projects)
+// Step 5: Deploy Azure AI Foundry (without any projects)
 module deployAzureAIFoundry 'ai-foundry.bicep' = {
   name: 'deployAzureAIFoundry'
   params: {
@@ -54,7 +64,7 @@ module deployAzureAIFoundry 'ai-foundry.bicep' = {
   }
 }
 
-// Step 4: Deploy Azure AI Foundry Project (with CosmosDB, Storage Account, and AI Search connections)
+// Step 6: Deploy Azure AI Foundry Project (with CosmosDB, Storage Account, and AI Search connections)
 module deployAzureAIFoundryProject 'ai-foundry-project.bicep' = {
   name: 'deployAzureAIFoundryProject'
   scope: resourceGroup()

@@ -2,6 +2,14 @@ targetScope = 'resourceGroup'
 
 /*** NEW RESOURCES ***/
 
+resource egressRouteTable 'Microsoft.Network/routeTables@2024-05-01' = {
+  name: 'udr-internet-to-firewall'
+  location: resourceGroup().location
+  properties: {
+    disableBgpRoutePropagation: true
+  }
+}
+
 resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-05-01' = {
   name: 'vnet-workload'
   location: resourceGroup().location
@@ -13,7 +21,7 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-05-01' = {
     }
     subnets: [
       {
-        name: 'agent'
+        name: 'snet-agents-egress'
         properties: {
           addressPrefix: '192.168.0.0/24'
           delegations: [
@@ -27,18 +35,43 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-05-01' = {
           privateEndpointNetworkPolicies: 'Enabled'
           privateLinkServiceNetworkPolicies: 'Enabled'
           defaultOutboundAccess: true
+          routeTable: {
+            id: egressRouteTable.id  // This subnet will only have egress traffic if your agents reach outside of your virtual network, route through the firewall just in case
+          }
         }
       }
       {
-        name: 'private-endpoints'
+        name: 'snet-private-endpoints'
         properties: {
           addressPrefix: '192.168.1.0/24'
           privateEndpointNetworkPolicies: 'Enabled'
           privateLinkServiceNetworkPolicies: 'Enabled'
           defaultOutboundAccess: false
+          routeTable: {
+            id: egressRouteTable.id  // This subnet probably won't have egress traffic, but route through the firewall just in case
+          }
+        }
+      }
+      {
+        name: 'AzureFirewallManagementSubnet'
+        properties: {
+          addressPrefix: '192.168.2.0/26'
+          privateEndpointNetworkPolicies: 'Disabled'
+          privateLinkServiceNetworkPolicies: 'Enabled'
+          delegations: []
+        }
+      }
+      {
+        name: 'AzureFirewallSubnet'
+        properties: {
+          addressPrefix: '192.168.2.64/26'
+          privateEndpointNetworkPolicies: 'Disabled'
+          privateLinkServiceNetworkPolicies: 'Enabled'
+          delegations: []
         }
       }
     ]
+    enableDdosProtection: false
   }
 
   resource agentSubnet 'subnets' existing = {

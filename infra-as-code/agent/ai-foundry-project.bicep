@@ -7,6 +7,13 @@ param existingAISearchAccountName string
 
 /*** EXISTING RESOURCES ***/
 
+var workspaceId = aiFoundry::project.properties.internalId
+var workspaceIdAsGuid = '${substring(workspaceId, 0, 8)}-${substring(workspaceId, 8, 4)}-${substring(workspaceId, 12, 4)}-${substring(workspaceId, 16, 4)}-${substring(workspaceId, 20, 12)}'
+
+var scopeUserContainerId = '/subscriptions/${subscription().subscriptionId}/resourceGroups/${resourceGroup().name}/providers/Microsoft.DocumentDB/databaseAccounts/${cosmosDbAccount.name}/dbs/enterprise_memory/colls/${workspaceIdAsGuid}-thread-message-store'
+var scopeSystemContainerId = '/subscriptions/${subscription().subscriptionId}/resourceGroups/${resourceGroup().name}/providers/Microsoft.DocumentDB/databaseAccounts/${cosmosDbAccount.name}/dbs/enterprise_memory/colls/${workspaceIdAsGuid}-system-thread-message-store'
+var scopeEntityContainerId = '/subscriptions/${subscription().subscriptionId}/resourceGroups/${resourceGroup().name}/providers/Microsoft.DocumentDB/databaseAccounts/${cosmosDbAccount.name}/dbs/enterprise_memory/colls/${workspaceIdAsGuid}-agent-entity-store'
+
 resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2024-12-01-preview' existing = {
   name: existingCosmosDbAccountName
 
@@ -14,55 +21,45 @@ resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2024-12-01-previ
     name: '00000000-0000-0000-0000-000000000002'
   }
 
-  resource agentDatabase 'sqlDatabases' existing = {
-    name: 'enterprise_memory'
-
-    resource userThreadContainer 'containers' existing = {
-      name: '${workspaceId}-thread-message-store'
-    }
-
-    resource systemThreadContainer 'containers' existing = {
-      name: '${workspaceId}-system-thread-message-store'
-    }
-
-    resource entityStoreContainer 'containers' existing = {
-      name: '${workspaceId}-agent-entity-store'
-    }
-  }
+  //resource agentDatabase 'sqlDatabases' existing = {
+  //  name: 'enterprise_memory'
+  //}
 
   resource projectUserThreadContainerWriter 'sqlRoleAssignments' = {
-    name: guid(aiFoundry::project.id, cosmosDbAccount::writer.id, cosmosDbAccount::agentDatabase::userThreadContainer.id)
+    name: guid(aiFoundry::project.id, cosmosDbAccount::writer.id, 'enterprise_memory', 'user')
     properties: {
       roleDefinitionId: cosmosDbAccount::writer.id
       principalId: aiFoundry::project.identity.principalId
-      scope: cosmosDbAccount::agentDatabase::userThreadContainer.id
+      scope: scopeUserContainerId
     }
     dependsOn: [
-      aiFoundry::project::threadStorageConnection
+      aiFoundry::project::aiAgentService
     ]
   }
 
   resource projectSystemThreadContainerWriter 'sqlRoleAssignments' = {
-    name: guid(aiFoundry::project.id, cosmosDbAccount::writer.id, cosmosDbAccount::agentDatabase::systemThreadContainer.id)
+    name: guid(aiFoundry::project.id, cosmosDbAccount::writer.id, 'enterprise_memory', 'system')
     properties: {
       roleDefinitionId: cosmosDbAccount::writer.id
       principalId: aiFoundry::project.identity.principalId
-      scope: cosmosDbAccount::agentDatabase::systemThreadContainer.id
+      scope: scopeSystemContainerId
     }
     dependsOn: [
-      aiFoundry::project::threadStorageConnection
+      cosmosDbAccount::projectUserThreadContainerWriter
+      aiFoundry::project::aiAgentService
     ]
   }
 
   resource projectEntityContainerWriter 'sqlRoleAssignments' = {
-    name: guid(aiFoundry::project.id, cosmosDbAccount::writer.id, cosmosDbAccount::agentDatabase::entityStoreContainer.id)
+    name: guid(aiFoundry::project.id, cosmosDbAccount::writer.id, 'enterprise_memory', 'entities')
     properties: {
       roleDefinitionId: cosmosDbAccount::writer.id
       principalId: aiFoundry::project.identity.principalId
-      scope: cosmosDbAccount::agentDatabase::entityStoreContainer.id
+      scope: scopeEntityContainerId
     }
     dependsOn: [
-      aiFoundry::project::threadStorageConnection
+      cosmosDbAccount::projectSystemThreadContainerWriter
+      aiFoundry::project::aiAgentService
     ]
   }
 }
@@ -165,7 +162,7 @@ resource aiFoundry 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' exi
       name: azureAISearchService.name
       properties: {
         category: 'CognitiveSearch'
-        target: azureAISearchService.properties.endpoint //'https://${azureAiSearchService.name}.search.windows.net'
+        target: azureAISearchService.properties.endpoint
         authType: 'AAD'
         metadata: {
           ApiType: 'Azure'
@@ -195,8 +192,6 @@ resource aiFoundry 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' exi
   }
 }
 
-var workspaceId = aiFoundry::project.properties.internalId
-
 // Role assignments
 
 resource projectDbCosmosDbOperatorAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
@@ -219,17 +214,15 @@ resource projectBlobDataContributorAssignment 'Microsoft.Authorization/roleAssig
   }
 }
 
-
 resource projectBlobDataOwnerConditionalAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(aiFoundry::project.id, storageBlobDataOwnerRole.id, agentStorageAccount.id)
-  scope: agentStorageAccount
-  
+  scope: agentStorageAccount  
   properties: {
     principalId: aiFoundry::project.identity.principalId
     roleDefinitionId: storageBlobDataOwnerRole.id
     principalType: 'ServicePrincipal'
     conditionVersion: '2.0'
-    condition: '((!(ActionMatches{\'Microsoft.Storage/storageAccounts/blobServices/containers/blobs/tags/read\'})  AND  !(ActionMatches{\'Microsoft.Storage/storageAccounts/blobServices/containers/blobs/filter/action\'}) AND  !(ActionMatches{\'Microsoft.Storage/storageAccounts/blobServices/containers/blobs/tags/write\'}) ) OR (@Resource[Microsoft.Storage/storageAccounts/blobServices/containers:name] StringStartsWithIgnoreCase \'${workspaceId}\' AND @Resource[Microsoft.Storage/storageAccounts/blobServices/containers:name] StringLikeIgnoreCase \'*-azureml-agent\'))'
+    condition: '((!(ActionMatches{\'Microsoft.Storage/storageAccounts/blobServices/containers/blobs/tags/read\'})  AND  !(ActionMatches{\'Microsoft.Storage/storageAccounts/blobServices/containers/blobs/filter/action\'}) AND  !(ActionMatches{\'Microsoft.Storage/storageAccounts/blobServices/containers/blobs/tags/write\'}) ) OR (@Resource[Microsoft.Storage/storageAccounts/blobServices/containers:name] StringStartsWithIgnoreCase \'${workspaceIdAsGuid}\'))'
   }
 }
 
@@ -265,7 +258,9 @@ resource deploymentScript 'Microsoft.Resources/deploymentScripts@2023-08-01' = {
   }
 
   dependsOn: [
-    cosmosDbAccount::projectEntityContainerWriter
+    aiFoundry::project::threadStorageConnection
+    aiFoundry::project::storageConnection
+    aiFoundry::project::aiSearchConnection
   ]
 }
 

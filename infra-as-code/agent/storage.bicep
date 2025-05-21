@@ -1,9 +1,15 @@
 targetScope = 'resourceGroup'
 
 param uniqueSuffix string
+param debugUserPrincipalId string
 param privateEndpointSubnetResourceId string
 
 /*** EXISTING RESOURCES ***/
+
+resource storageBlobDataOwnerRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  name: 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b'
+  scope: subscription()
+}
 
 resource blobStorageLinkedPrivateDnsZone 'Microsoft.Network/privateDnsZones@2024-06-01' existing = {
   name: 'privatelink.blob.core.windows.net'
@@ -43,8 +49,20 @@ resource agentStorageAccount 'Microsoft.Storage/storageAccounts@2024-01-01' = {
   }
 }
 
-// Private endpoints
+// Role assignments
 
+resource debugUserBlobDataOwnerAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(debugUserPrincipalId, storageBlobDataOwnerRole.id, agentStorageAccount.id)
+  scope: agentStorageAccount
+  properties: {
+    principalId: debugUserPrincipalId
+    roleDefinitionId: storageBlobDataOwnerRole.id
+    principalType: 'User'
+  }
+}
+
+
+// Private endpoints
 
 resource storagePrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-05-01' = {
   name: 'pe-aiagentstorage'

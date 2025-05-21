@@ -1,5 +1,7 @@
 targetScope = 'resourceGroup'
 
+// Ref: https://github.com/azure-ai-foundry/foundry-samples/blob/main/samples/microsoft/infrastructure-setup/15-private-network-standard-agent-setup/modules-network-secured/cosmos-container-role-assignments.bicep
+
 param uniqueSuffix string
 param userPrincipalId string
 
@@ -11,7 +13,15 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2025-02
     sku: {
       name: 'PerGB2018'
     }
+    features: {
+      enableLogAccessUsingOnlyResourcePermissions: true
+    }
     retentionInDays: 30
+    publicNetworkAccessForIngestion: 'Enabled'
+    publicNetworkAccessForQuery: 'Enabled'
+    workspaceCapping: {
+      dailyQuotaGb: 20
+    }
   }
 }
 
@@ -35,6 +45,7 @@ module deployAIAgentServiceDependencies 'ai-agent-service-dependencies.bicep' = 
 
 // Step 3: Deploy Azure AI Foundry (without any projects)
 module deployAzureAIFoundry 'ai-foundry.bicep' = {
+  name: 'deployAzureAIFoundry'
   params: {
     agentSubnetResourceId: deployVirtualNetwork.outputs.virtualNetworkAgentSubnetResourceId
     aiFoundryPortalUserPrincipalId: userPrincipalId

@@ -1,6 +1,7 @@
 targetScope = 'resourceGroup'
 
 param privateEndpointSubnetResourceId string
+param debugUserPrincipalId string
 
 /*** EXISTING RESOURCES ***/
 
@@ -12,10 +13,15 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2025-02
   name: 'log-workload'
 }
 
+resource azureAISearchIndexDataContributorRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  name: '8ebe5a00-799e-43f5-93ac-243d3dce84a7'
+  scope: subscription()
+}
+
 /*** NEW RESOURCES ***/
 
 resource azureAiSearchService 'Microsoft.Search/searchServices@2025-02-01-preview' = {
-  name: 'aisAgent'
+  name: 'ais-agent'
   location: resourceGroup().location
   identity: {
     type: 'SystemAssigned'
@@ -35,6 +41,18 @@ resource azureAiSearchService 'Microsoft.Search/searchServices@2025-02-01-previe
       bypass: 'None'
       ipRules: []
     }
+  }
+}
+
+// Role assignments
+
+resource debugUserAISearchIndexDataContributorAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
+  name: guid(debugUserPrincipalId, azureAISearchIndexDataContributorRole.id, azureAiSearchService.id)
+  scope: azureAiSearchService
+  properties: {
+    roleDefinitionId: azureAISearchIndexDataContributorRole.id
+    principalId: debugUserPrincipalId
+    principalType: 'ServicePrincipal'
   }
 }
 

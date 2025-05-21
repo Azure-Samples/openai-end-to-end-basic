@@ -10,6 +10,7 @@ module deployAgentStorageAccount 'storage.bicep' = {
   scope: resourceGroup()
   params: {
     uniqueSuffix: uniqueSuffix
+    debugUserPrincipalId: userPrincipalId
     privateEndpointSubnetResourceId: privateEndpointSubnetResourceId
   }
 }
@@ -30,6 +31,7 @@ module deployAzureAiSearchService 'ai-search.bicep' = {
   scope: resourceGroup()
   params: {
     privateEndpointSubnetResourceId: privateEndpointSubnetResourceId
+    debugUserPrincipalId: userPrincipalId
   }
 }
 

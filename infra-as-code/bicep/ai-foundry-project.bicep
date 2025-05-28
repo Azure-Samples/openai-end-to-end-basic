@@ -64,17 +64,6 @@ resource aiFoundry 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' exi
       dependsOn: []
     }
     
-    @description('Create the Azure AI Agent Service.')
-    resource aiAgentService 'capabilityHosts' = {
-      name: 'projectagents'
-      properties: {
-        capabilityHostKind: 'Agents'
-      }
-      dependsOn: [
-        applicationInsightsConnection  // Single thread changes to the project, else conflict errors tend to happen
-      ]
-    }
-
     @description('Create project connection to Bing grounding data. Useful for future agents that get created.')
     resource bingGroundingConnection 'connections' = {
       name: replace(existingBingAccountName, '-', '')
@@ -94,7 +83,7 @@ resource aiFoundry 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' exi
         isSharedToAll: false
       }
       dependsOn: [
-        aiAgentService  // Deploy after the Azure AI Agent Service is provisioned, not a dependency.
+        applicationInsightsConnection  // Single thread changes to the project, else conflict errors tend to happen
       ]
     }
   }

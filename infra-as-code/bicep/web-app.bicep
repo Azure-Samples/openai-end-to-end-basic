@@ -1,0 +1,272 @@
+targetScope = 'resourceGroup'
+
+/*
+  Deploy a web app with a managed identity, diagnostic, and a private endpoint
+*/
+
+@description('This is the base name for each Azure resource name (6-8 chars)')
+@minLength(6)
+@maxLength(8)
+param baseName string
+
+@description('The region in which this architecture is deployed. Should match the region of the resource group.')
+@minLength(1)
+param location string = resourceGroup().location
+
+@description('The name of the workload\'s existing Log Analytics workspace.')
+@minLength(4)
+param logAnalyticsWorkspaceName string
+
+@description('The name of the existing Azure Application Insights instance that the Azure Web App will be using.')
+@minLength(1)
+param existingWebApplicationInsightsResourceName string
+
+@description('The name of the existing Azure AI Foundry instance that the the Azure Web App code will be calling for Azure AI Agent Service agents.')
+@minLength(2)
+param existingAzureAiFoundryResourceName string
+
+@description('The name of the existing Azure AI Foundry project connection for Bing grounding searches.')
+@minLength(2)
+param bingSearchConnectionId string
+
+// variables
+var appName = 'app-${baseName}'
+
+// ---- Existing resources ----
+
+@description('Existing Application Insights instance. Logs from the web app will be sent here.')
+resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing = {
+  name: existingWebApplicationInsightsResourceName
+}
+
+resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2025-02-01' existing = {
+  name: logAnalyticsWorkspaceName
+}
+
+@description('Built-in Role: [Azure AI User](https://learn.microsoft.com/azure/ai-foundry/concepts/rbac-azure-ai-foundry?pivots=fdp-project#azure-ai-user)')
+resource azureAiUserRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  name: '53ca6127-db72-4b80-b1b0-d745d6d5456d'
+  scope: subscription()
+}
+
+// TODO: Should only be needed while the Web App is creating the agent. Remove once that code is removed.
+@description('Built-in Role: [Azure AI Project Manager](https://learn.microsoft.com/azure/ai-foundry/concepts/rbac-azure-ai-foundry?pivots=fdp-project#azure-ai-user)')
+resource azureAiProjectManagerRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  name: 'eadc314b-1a2d-4efa-be10-5d325db5065e'
+  scope: subscription()
+}
+
+@description('Existing Azure AI Foundry account. This account is where the agents hosted in Azure AI Agent Service will be deployed. The web app code calls to these agents.')
+resource aiFoundry 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' existing = {
+  name: existingAzureAiFoundryResourceName
+}
+
+// ---- New resources ----
+
+@description('Managed Identity for App Service')
+resource appServiceManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
+  name: 'id-${appName}'
+  location: location
+}
+
+@description('Grant the App Service managed identity Azure AI user role permission so it can call into the Azure AI Foundry-hosted agent.')
+resource azureAiUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: aiFoundry
+  name: guid(aiFoundry.id, appServiceManagedIdentity.id, azureAiUserRole.id)
+  properties: {
+    roleDefinitionId: azureAiUserRole.id
+    principalType: 'ServicePrincipal'
+    principalId: appServiceManagedIdentity.properties.principalId
+  }
+}
+
+@description('Grant the App Service managed identity Azure AI manager role permission so it create the Azure AI Foundry-hosted agent. Temporary until the web app code is updated to not require this role.')
+resource azureAiManagerRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: aiFoundry
+  name: guid(aiFoundry.id, appServiceManagedIdentity.id, azureAiProjectManagerRole.id)
+  properties: {
+    roleDefinitionId: azureAiProjectManagerRole.id
+    principalType: 'ServicePrincipal'
+    principalId: appServiceManagedIdentity.properties.principalId
+  }
+}
+
+@description('Linux, PremiumV4 App Service Plan to host the chat web application.')
+resource appServicePlan 'Microsoft.Web/serverfarms@2024-04-01' = {
+  name: 'asp-${appName}${uniqueString(subscription().subscriptionId)}'
+  location: location
+  kind: 'linux'
+  sku: {
+    name: 'S1' // TODO: 'P1V4'
+    //tier: 'PremiumV4'  // az appservice list-locations --linux-workers-enabled --sku P1V4
+    capacity: 3
+  }
+  properties: {
+    zoneRedundant: false // TODO true
+    reserved: true
+  }
+}
+
+@description('This is the web app that contains the chat UI application.')
+resource webApp 'Microsoft.Web/sites@2024-04-01' = {
+  name: appName
+  location: location
+  kind: 'app,linux'
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${appServiceManagedIdentity.id}': {}
+    }
+  }
+  properties: {
+    enabled: true
+    serverFarmId: appServicePlan.id
+    virtualNetworkSubnetId: null
+    httpsOnly: true
+    #disable-next-line BCP037 // This is a valid property, just not part of the schema https://github.com/Azure/bicep-types-az/issues/2204
+    sshEnabled: false
+    autoGeneratedDomainNameLabelScope: 'SubscriptionReuse'
+    vnetContentShareEnabled: false
+    vnetImagePullEnabled: false
+    publicNetworkAccess: 'Enabled'
+    keyVaultReferenceIdentity: null
+    endToEndEncryptionEnabled: true
+    vnetRouteAllEnabled: false
+    hostNamesDisabled: false
+    clientAffinityEnabled: false
+    siteConfig: {
+      ftpsState: 'Disabled'
+      vnetRouteAllEnabled: false
+      http20Enabled: false
+      publicNetworkAccess: 'Enabled'
+      alwaysOn: true
+      linuxFxVersion: 'DOTNETCORE|8.0'
+      netFrameworkVersion: null
+      windowsFxVersion: null
+      minTlsCipherSuite: 'TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256'
+    }
+  }
+  dependsOn: []
+
+  @description('Default configuration for the web app.')
+  resource appsettings 'config' = {
+    name: 'appsettings'
+    properties: {
+      APPLICATIONINSIGHTS_CONNECTION_STRING: applicationInsights.properties.ConnectionString
+      AZURE_CLIENT_ID: appServiceManagedIdentity.properties.clientId
+      ApplicationInsightsAgent_EXTENSION_VERSION: '~3'
+      AIProjectEndpoint: '${aiFoundry.properties.endpoints['AI Foundry API']}api/projects/projchat'
+      BingSearchConnectionId: bingSearchConnectionId // TODO: Should be able to be removed once agent creation is out of this code.
+      DefaultModel: 'gpt-4o' // TODO: Should be able to be removed once agent creation is out of this code.
+      AIAgentId: 'TBD' // TODO: Use this once agent creation is out of this code.
+      XDT_MicrosoftApplicationInsights_Mode: 'Recommended'
+    }
+  }
+
+  @description('Disable SCM publishing integration.')
+  resource scm 'basicPublishingCredentialsPolicies' = {
+    name: 'scm'
+    properties: {
+      allow: false
+    }
+  }
+
+  @description('Disable FTP publishing integration.')
+  resource ftp 'basicPublishingCredentialsPolicies' = {
+    name: 'ftp'
+    properties: {
+      allow: false
+    }
+  }
+}
+
+@description('Enable App Service Azure Diagnostic')
+resource azureDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: 'default'
+  scope: webApp
+  properties: {
+    workspaceId: logWorkspace.id
+    logs: [
+      {
+        category: 'AppServiceHTTPLogs'
+        enabled: true
+      }
+      {
+        category: 'AppServiceConsoleLogs'
+        enabled: true
+      }
+      {
+        category: 'AppServiceAppLogs'
+        enabled: true
+      }
+      {
+        category: 'AppServicePlatformLogs'
+        enabled: true
+      }
+      {
+        category: 'AppServiceAuditLogs'
+        enabled: true
+      }
+      {
+        category: 'AppServiceIPSecAuditLogs'
+        enabled: true
+      }
+      {
+        category: 'AppServiceAuthenticationLogs'
+        enabled: true
+      }
+    ]
+  }
+}
+
+// App service plan auto scale settings
+resource appServicePlanAutoScaleSettings 'Microsoft.Insights/autoscalesettings@2022-10-01' = {
+  name: '${appServicePlan.name}-autoscale'
+  location: location
+  properties: {
+    enabled: true
+    targetResourceUri: appServicePlan.id
+    profiles: [
+      {
+        name: 'Scale out condition'
+        capacity: {
+          maximum: '5'
+          default: '3'
+          minimum: '3'
+        }
+        rules: [
+          {
+            scaleAction: {
+              type: 'ChangeCount'
+              direction: 'Increase'
+              cooldown: 'PT5M'
+              value: '1'
+            }
+            metricTrigger: {
+              metricName: 'CpuPercentage'
+              metricNamespace: 'microsoft.web/serverfarms'
+              operator: 'GreaterThan'
+              timeAggregation: 'Average'
+              threshold: 70
+              metricResourceUri: appServicePlan.id
+              timeWindow: 'PT10M'
+              timeGrain: 'PT1M'
+              statistic: 'Average'
+            }
+          }
+        ]
+      }
+    ]
+  }
+  dependsOn: [
+    webApp
+  ]
+}
+
+// ---- Outputs ----
+
+@description('The name of the app service plan.')
+output appServicePlanName string = appServicePlan.name
+
+@description('The name of the web app.')
+output appName string = webApp.name

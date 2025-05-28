@@ -1,4 +1,7 @@
-@description('The location in which all resources should be deployed.')
+targetScope = 'resourceGroup'
+
+@description('The region in which this architecture is deployed. Should match the region of the resource group.')
+@minLength(1)
 param location string = resourceGroup().location
 
 @description('This is the base name for each Azure resource name (6-8 chars)')
@@ -6,9 +9,9 @@ param location string = resourceGroup().location
 @maxLength(8)
 param baseName string
 
-@description('Your principal ID. Used for a few role assignments.')
-@minLength(36)
+@description('Assign your user some roles to support fluid access when working in the Azure AI Foundry portal and its dependencies.')
 @maxLength(36)
+@minLength(36)
 param yourPrincipalId string
 
 @description('Set to true to opt-out of deployment telemetry.')
@@ -17,9 +20,11 @@ param telemetryOptOut bool = false
 // Customer Usage Attribution Id
 var varCuaid = '6aa4564a-a8b7-4ced-8e57-1043a41f4747'
 
-// ---- Log Analytics workspace ----
-resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
-  name: 'log-${baseName}'
+// ---- New resources ----
+
+@description('This is the log sink for all Azure Diagnostics in the workload.')
+resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2025-02-01' = {
+  name: 'log-workload'
   location: location
   properties: {
     sku: {
@@ -35,89 +40,70 @@ resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
   }
 }
 
-// Deploy Azure Storage account
-module storageModule 'storage.bicep' = {
-  name: 'storageDeploy'
+// Deploy the Azure AI Foundry account and Azure AI Agent service components.
+
+@description('Deploy Azure AI Foundry with Azure AI Agent capability. No projects yet deployed.')
+module deployAzureAIFoundry 'ai-foundry.bicep' = {
+  name: 'aiFoundryDeploy'
   params: {
     location: location
     baseName: baseName
-    logWorkspaceName: logWorkspace.name
+    logAnalyticsWorkspaceName: logAnalyticsWorkspace.name
+    aiFoundryPortalUserPrincipalId: yourPrincipalId
+  }
+  dependsOn: []
+}
+
+@description('Deploy the Bing account for Internet grounding data to be used by agents in the Azure AI Agent service.')
+module deployBingAccount 'bing-grounding.bicep' = {
+  scope: resourceGroup()
+  name: 'bingAccountDeploy'
+}
+
+@description('Deploy the Azure AI Foundry project into the AI Foundry account. This is the project is the home of the Azure AI Agent service.')
+module deployAzureAiFoundryProject 'ai-foundry-project.bicep' = {
+  scope: resourceGroup()
+  name: 'aiFoundryProjectDeploy'
+  params: {
+    location: location
+    existingAiFoundryName: deployAzureAIFoundry.outputs.aiFoundryName
+    existingBingAccountName: deployBingAccount.outputs.bingAccountName
+    existingWebApplicationInsightsResourceName: deployApplicationInsights.outputs.applicationInsightsName
+  }
+  dependsOn: []
+}
+
+// Deploy the Azure Web App resources for the chat UI.
+
+@description('Deploy Application Insights. Used by the Azure Web App to monitor the deployed application and connected to the Azure AI Foundry project.')
+module deployApplicationInsights 'application-insights.bicep' = {
+  scope: resourceGroup()
+  name: 'applicationInsightsDeploy'
+  params: {
+    location: location
+    baseName: baseName
+    logAnalyticsWorkspaceName: logAnalyticsWorkspace.name
   }
 }
 
-// Deploy Azure Key Vault
-module keyVaultModule 'keyvault.bicep' = {
-  name: 'keyVaultDeploy'
+@description('Deploy the web app for the front end demo UI. The web application will call into the Azure AI Agent service.')
+module deployWebApp 'web-app.bicep' = {
+  scope: resourceGroup()
+  name: 'webAppDeploy'
   params: {
     location: location
     baseName: baseName
-    logWorkspaceName: logWorkspace.name
+    logAnalyticsWorkspaceName: logAnalyticsWorkspace.name
+    existingWebApplicationInsightsResourceName: deployApplicationInsights.outputs.applicationInsightsName
+    existingAzureAiFoundryResourceName: deployAzureAIFoundry.outputs.aiFoundryName
+    bingSearchConnectionId: deployAzureAiFoundryProject.outputs.bingSearchConnectionId
   }
-}
-
-// Deploy Azure Container Registry
-module acrModule 'acr.bicep' = {
-  name: 'acrDeploy'
-  params: {
-    location: location
-    baseName: baseName
-    logWorkspaceName: logWorkspace.name
-  }
-}
-
-// Deploy application insights and log analytics workspace
-module appInsightsModule 'applicationinsights.bicep' = {
-  name: 'appInsightsDeploy'
-  params: {
-    location: location
-    baseName: baseName
-    logWorkspaceName: logWorkspace.name
-  }
-}
-
-// Deploy Azure OpenAI service
-module openaiModule 'openai.bicep' = {
-  name: 'openaiDeploy'
-  params: {
-    location: location
-    baseName: baseName
-    logWorkspaceName: logWorkspace.name
-  }
-}
-
-// Deploy Azure AI Foundry hub, projects, and managed online endpoints.
-module aiStudio 'machinelearning.bicep' = {
-  name: 'aiStudio'
-  params: {
-    location: location
-    baseName: baseName
-    applicationInsightsName: appInsightsModule.outputs.applicationInsightsName
-    keyVaultName: keyVaultModule.outputs.keyVaultName
-    aiFoundryStorageAccountName: storageModule.outputs.aiFoundryStorageAccountName
-    containerRegistryName: 'cr${baseName}'
-    yourPrincipalId: yourPrincipalId
-    logWorkspaceName: logWorkspace.name
-    azureAiServicesResourceName: openaiModule.outputs.azureAiServicesResourceName
-  }
-}
-
-// Deploy the web apps for the front end demo UI
-module webappModule 'webapp.bicep' = {
-  name: 'webappDeploy'
-  params: {
-    location: location
-    baseName: baseName
-    keyVaultName: keyVaultModule.outputs.keyVaultName
-    logWorkspaceName: logWorkspace.name
-  }
-  dependsOn: [
-    aiStudio
-  ]
 }
 
 // Optional Deployment for Customer Usage Attribution
 module customerUsageAttributionModule 'customerUsageAttribution/cuaIdResourceGroup.bicep' = if (!telemetryOptOut) {
   #disable-next-line no-loc-expr-outside-params // Only to ensure telemetry data is stored in same location as deployment. See https://github.com/Azure/ALZ-Bicep/wiki/FAQ#why-are-some-linter-rules-disabled-via-the-disable-next-line-bicep-function for more information
   name: 'pid-${varCuaid}-${uniqueString(resourceGroup().location)}'
+  scope: resourceGroup()
   params: {}
 }

@@ -40,8 +40,8 @@ resource aiFoundry 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' exi
       type: 'SystemAssigned'
     }
     properties: {
-      description: 'Chat using internet data'
-      displayName: 'ChatWithInternetData'
+      description: 'Chat using internet data in your Azure AI Agent.'
+      displayName: 'Chat with Internet Data'
     }
 
     @description('Connect this project to application insights for visualization of token usage.')
@@ -91,4 +91,4 @@ resource aiFoundry 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' exi
 
 // ---- Outputs ----
 
-output bingSearchConnectionId string = aiFoundry::project::bingGroundingConnection.id
+output aiAgentProjectName string = aiFoundry::project.name

@@ -44,6 +44,7 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2025-02
 
 @description('Deploy Azure AI Foundry with Azure AI Agent capability. No projects yet deployed.')
 module deployAzureAIFoundry 'ai-foundry.bicep' = {
+  scope: resourceGroup()
   name: 'aiFoundryDeploy'
   params: {
     location: location
@@ -96,7 +97,7 @@ module deployWebApp 'web-app.bicep' = {
     logAnalyticsWorkspaceName: logAnalyticsWorkspace.name
     existingWebApplicationInsightsResourceName: deployApplicationInsights.outputs.applicationInsightsName
     existingAzureAiFoundryResourceName: deployAzureAIFoundry.outputs.aiFoundryName
-    bingSearchConnectionId: deployAzureAiFoundryProject.outputs.bingSearchConnectionId
+    existingAzureAiFoundryProjectName: deployAzureAiFoundryProject.outputs.aiAgentProjectName
   }
 }
 

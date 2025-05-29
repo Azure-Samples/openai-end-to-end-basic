@@ -25,9 +25,9 @@ param existingWebApplicationInsightsResourceName string
 @minLength(2)
 param existingAzureAiFoundryResourceName string
 
-@description('The name of the existing Azure AI Foundry project connection for Bing grounding searches.')
+@description('The name of the existing Azure AI Foundry project name.')
 @minLength(2)
-param bingSearchConnectionId string
+param existingAzureAiFoundryProjectName string
 
 // variables
 var appName = 'app-${baseName}'
@@ -49,16 +49,13 @@ resource azureAiUserRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' ex
   scope: subscription()
 }
 
-// TODO: Should only be needed while the Web App is creating the agent. Remove once that code is removed.
-@description('Built-in Role: [Azure AI Project Manager](https://learn.microsoft.com/azure/ai-foundry/concepts/rbac-azure-ai-foundry?pivots=fdp-project#azure-ai-user)')
-resource azureAiProjectManagerRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
-  name: 'eadc314b-1a2d-4efa-be10-5d325db5065e'
-  scope: subscription()
-}
-
 @description('Existing Azure AI Foundry account. This account is where the agents hosted in Azure AI Agent Service will be deployed. The web app code calls to these agents.')
 resource aiFoundry 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' existing = {
   name: existingAzureAiFoundryResourceName
+
+  resource project 'projects' existing = {
+    name: existingAzureAiFoundryProjectName
+   }
 }
 
 // ---- New resources ----
@@ -80,29 +77,17 @@ resource azureAiUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2022
   }
 }
 
-@description('Grant the App Service managed identity Azure AI manager role permission so it create the Azure AI Foundry-hosted agent. Temporary until the web app code is updated to not require this role.')
-resource azureAiManagerRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  scope: aiFoundry
-  name: guid(aiFoundry.id, appServiceManagedIdentity.id, azureAiProjectManagerRole.id)
-  properties: {
-    roleDefinitionId: azureAiProjectManagerRole.id
-    principalType: 'ServicePrincipal'
-    principalId: appServiceManagedIdentity.properties.principalId
-  }
-}
-
-@description('Linux, PremiumV4 App Service Plan to host the chat web application.')
+@description('Linux, PremiumV3 App Service Plan to host the chat web application.')
 resource appServicePlan 'Microsoft.Web/serverfarms@2024-04-01' = {
   name: 'asp-${appName}${uniqueString(subscription().subscriptionId)}'
   location: location
   kind: 'linux'
   sku: {
-    name: 'S1' // TODO: 'P1V4'
-    //tier: 'PremiumV4'  // az appservice list-locations --linux-workers-enabled --sku P1V4
+    name: 'P1V3'  // az appservice list-locations --linux-workers-enabled --sku P1V3
     capacity: 3
   }
   properties: {
-    zoneRedundant: false // TODO true
+    zoneRedundant: false
     reserved: true
   }
 }
@@ -143,7 +128,6 @@ resource webApp 'Microsoft.Web/sites@2024-04-01' = {
       linuxFxVersion: 'DOTNETCORE|8.0'
       netFrameworkVersion: null
       windowsFxVersion: null
-      minTlsCipherSuite: 'TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256'
     }
   }
   dependsOn: []
@@ -155,10 +139,8 @@ resource webApp 'Microsoft.Web/sites@2024-04-01' = {
       APPLICATIONINSIGHTS_CONNECTION_STRING: applicationInsights.properties.ConnectionString
       AZURE_CLIENT_ID: appServiceManagedIdentity.properties.clientId
       ApplicationInsightsAgent_EXTENSION_VERSION: '~3'
-      AIProjectEndpoint: '${aiFoundry.properties.endpoints['AI Foundry API']}api/projects/projchat'
-      BingSearchConnectionId: bingSearchConnectionId // TODO: Should be able to be removed once agent creation is out of this code.
-      DefaultModel: 'gpt-4o' // TODO: Should be able to be removed once agent creation is out of this code.
-      AIAgentId: 'TBD' // TODO: Use this once agent creation is out of this code.
+      AIProjectEndpoint: '${aiFoundry.properties.endpoints['AI Foundry API']}api/projects/${aiFoundry::project.name}}'
+      AIAgentId: 'Not yet set'
       XDT_MicrosoftApplicationInsights_Mode: 'Recommended'
     }
   }

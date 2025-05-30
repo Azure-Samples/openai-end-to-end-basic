@@ -28,6 +28,7 @@ public class ChatController(
         _logger.LogDebug("Prompt received {Prompt}", prompt);
         var _config = _options.CurrentValue;
 
+        // TODO: Reuse chat context.
         PersistentAgentThread thread = await _client.Threads.CreateThreadAsync();
 
         PersistentThreadMessage message = await _client.Messages.CreateMessageAsync(

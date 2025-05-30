@@ -143,7 +143,7 @@ The AI agent definition would likely be deployed from your application's pipelin
          > agents/chat-with-bing-output.json
 
    # Deploy the agent
-   az rest -u $AI_FOUNDRY_AGENT_CREATE_URL -m "post" --resource "https://ai.azure.com" -b chat-with-bing-output.json
+   az rest -u $AI_FOUNDRY_AGENT_CREATE_URL -m "post" --resource "https://ai.azure.com" -b @agents/chat-with-bing-output.json
    ```
 
 1. Get Agent Id value

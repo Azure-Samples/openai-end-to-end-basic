@@ -180,14 +180,6 @@ Here you'll test your orchestration agent by invoking it directly from the Azure
 
 Workloads build chat functionality into an application. Those interfaces usually call Azure AI Foundry project endpoint invoking a particular agent. This implementation comes with such an interface. You'll deploy it to Azure App Service using the Azure CLI.
 
-In a production environment, you use a CI/CD pipeline to:
-
-- Build your web application
-- Create the project zip package
-- Upload the zip file to your Storage account from compute that is in or connected to the workload's virtual network.
-
-For this deployment guide, you'll continue using your terminal to simulate part of that process.
-
 1. Update the app configuration to use the agent you deployed.
 
    ```bash

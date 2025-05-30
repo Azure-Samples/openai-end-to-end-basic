@@ -219,7 +219,7 @@ Most Azure resources deployed in the prior steps will incur ongoing charges unle
 az group delete -n $RESOURCE_GROUP -y
 
 # Purge the soft delete resources
-az cognitiveservices account purge -g $RESOURCE_GROUP -l $LOCATION -n ais-${BASE_NAME}
+az cognitiveservices account purge -g $RESOURCE_GROUP -l $LOCATION -n aif${BASE_NAME}
 ```
 
 ## Contributions

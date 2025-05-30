@@ -77,14 +77,15 @@ resource azureAiUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2022
   }
 }
 
-@description('Linux, PremiumV3 App Service Plan to host the chat web application.')
+@description('Linux, B1 App Service Plan to host the chat web application.')
 resource appServicePlan 'Microsoft.Web/serverfarms@2024-04-01' = {
   name: 'asp-${appName}${uniqueString(subscription().subscriptionId)}'
   location: location
   kind: 'linux'
   sku: {
-    name: 'P1V3'  // az appservice list-locations --linux-workers-enabled --sku P1V3
-    capacity: 3
+    name: 'B1'  // az appservice list-locations --linux-workers-enabled --sku B1
+    tier: 'Basic'
+    capacity: 1
   }
   properties: {
     zoneRedundant: false

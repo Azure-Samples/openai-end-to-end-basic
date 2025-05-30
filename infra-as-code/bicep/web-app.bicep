@@ -202,50 +202,6 @@ resource azureDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-prev
   }
 }
 
-// App service plan auto scale settings
-resource appServicePlanAutoScaleSettings 'Microsoft.Insights/autoscalesettings@2022-10-01' = {
-  name: '${appServicePlan.name}-autoscale'
-  location: location
-  properties: {
-    enabled: true
-    targetResourceUri: appServicePlan.id
-    profiles: [
-      {
-        name: 'Scale out condition'
-        capacity: {
-          maximum: '5'
-          default: '3'
-          minimum: '3'
-        }
-        rules: [
-          {
-            scaleAction: {
-              type: 'ChangeCount'
-              direction: 'Increase'
-              cooldown: 'PT5M'
-              value: '1'
-            }
-            metricTrigger: {
-              metricName: 'CpuPercentage'
-              metricNamespace: 'microsoft.web/serverfarms'
-              operator: 'GreaterThan'
-              timeAggregation: 'Average'
-              threshold: 70
-              metricResourceUri: appServicePlan.id
-              timeWindow: 'PT10M'
-              timeGrain: 'PT1M'
-              statistic: 'Average'
-            }
-          }
-        ]
-      }
-    ]
-  }
-  dependsOn: [
-    webApp
-  ]
-}
-
 // ---- Outputs ----
 
 @description('The name of the app service plan.')

@@ -52,7 +52,6 @@ module deployAzureAIFoundry 'ai-foundry.bicep' = {
     logAnalyticsWorkspaceName: logAnalyticsWorkspace.name
     aiFoundryPortalUserPrincipalId: yourPrincipalId
   }
-  dependsOn: []
 }
 
 @description('Deploy the Bing account for Internet grounding data to be used by agents in the Azure AI Agent service.')
@@ -71,7 +70,6 @@ module deployAzureAiFoundryProject 'ai-foundry-project.bicep' = {
     existingBingAccountName: deployBingAccount.outputs.bingAccountName
     existingWebApplicationInsightsResourceName: deployApplicationInsights.outputs.applicationInsightsName
   }
-  dependsOn: []
 }
 
 // Deploy the Azure Web App resources for the chat UI.

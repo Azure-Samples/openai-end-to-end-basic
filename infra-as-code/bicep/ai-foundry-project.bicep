@@ -61,7 +61,6 @@ resource aiFoundry 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' exi
           location: applicationInsights.location
         }
       }
-      dependsOn: []
     }
     
     @description('Create project connection to Bing grounding data. Useful for future agents that get created.')

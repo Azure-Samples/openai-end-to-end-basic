@@ -206,7 +206,7 @@ You can also execute the following from your workstation. Unfortunately, this co
 az webapp browse -g $RESOURCE_GROUP -n $APPSERVICE_NAME
 ```
 
-Once you're there, ask your solution a question. Like before, you question should ideally involve recent data or events, something that would only be known by the RAG process including context from Wikipedia.
+Once you're there, ask your solution a question. Your question should involve something that would only be known if the RAG process included context from Bing such as recent weather or events.
 
 ## :broom: Clean up resources
 

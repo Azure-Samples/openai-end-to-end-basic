@@ -1,13 +1,6 @@
-# Azure OpenAI end-to-end basic reference implementation
+#  Azure OpenAI and AI Agent service chat basic reference implementation
 
-This reference implementation illustrates a basic approach for authoring and running a chat application in a single region with Prompt flow and Azure OpenAI. This reference implementation supports the [Basic Azure OpenAI end-to-end chat reference architecture](https://learn.microsoft.com/azure/architecture/ai-ml/architecture/basic-openai-e2e-chat).
-
-The implementation will have you build and test a [Prompt flow](https://microsoft.github.io/promptflow/) in the Azure AI Foundry portal and deploy the flow to an Azure Machine Learning online managed endpoint. You'll be exposed to common generative AI chat application characteristics such as:
-
-- Creating prompts
-- Querying data stores for grounding data
-- Python code
-- Calling language models (such as GPT models)
+This reference implementation illustrates an approach running a chat application and an AI orchestration layer in a single region. It uses Azure AI Agent service as the orchestrator and Azure OpenAI foundation models. This repository directly supports the [Basic end-to-end chat reference architecture](https://learn.microsoft.com/azure/architecture/ai-ml/architecture/basic-openai-e2e-chat) on Microsoft Learn.
 
 The reference implementation illustrates a basic example of a chat application. For a reference implementation that implements more enterprise requirements, please see the [OpenAI end-to-end baseline reference implementation](https://github.com/Azure-Samples/openai-end-to-end-baseline). That implementation addresses many of the [production readiness changes](https://github.com/search?q=repo%3AAzure-Samples%2Fopenai-end-to-end-basic+%22Production+readiness+change%22&type=code) identified in this code.
 
@@ -15,14 +8,23 @@ The reference implementation illustrates a basic example of a chat application. 
 
 The implementation covers the following scenarios:
 
-1. Authoring a flow - Authoring a flow using Prompt flow in Azure AI Foundry
-1. Deploying a flow - The client UI is hosted in Azure App Service and accesses the Azure OpenAI Service via a Managed online endpoint.
+- [Setting up Azure AI Foundry to host agents](#setting-up-azure-ai-foundry-to-host-agents)
+- [Deploying an agent into Azure AI Agent service](#deploying-an-agent-into-azure-ai-agent-service)
+- [Invoking the agent from .NET code hosted in an Azure Web App](#invoking-the-agent-from-net-code-hosted-in-an-azure-web-app)
 
-### Deploying a flow to Azure Machine Learning managed online endpoint
+### Setting up Azure AI Foundry to host agents
 
-![Diagram of the architecture for deploying a flow to Azure Machine Learning managed online endpoint hosted in Azure AI Foundry. It shows an App Service hosting a sample application fronting an Azure AI Foundry project with associated connections and services.](docs/media/openai-end-to-end-basic.png)
+Azure AI Foundry hosts Azure AI Agent service as a capability. Azure AI Agent service's REST APIs are exposed as a AI Foundry internet facing endpoing. This architecture deploys the Azure AI Agent service your own Azure subscription.
 
-The architecture diagram illustrates how a front-end web application connects to a managed online endpoint hosting the Prompt flow logic.
+### Deploying an agent into Azure AI Agent service
+
+Agents can be created via the Azure AI Foundry portal, [Azure AI Agents SDK](https://github.com/Azure/azure-sdk-for-net/tree/main/sdk/ai/Azure.AI.Agents.Persistent), or the [REST API](https://learn.microsoft.com/rest/api/aifoundry/aiagents/). The creation and invocation of agents are a data plane operation.
+
+Ideally agents should be source-controlled and a versioned asset. You then can deploy agents in a coordinated way with the rest of your workload's code. In this deployment guide, you'll create an agent through the REST API to simulate a deployment pipeline which could have created the agent.
+
+### Invoking the agent from .NET code hosted in an Azure Web App
+
+A chat UI application is deployed into Azure App Service. The .NET code uses the [Azure AI Agents SDK](https://github.com/Azure/azure-sdk-for-net/tree/main/sdk/ai/Azure.AI.Agents.Persistent) to connect to the workload's agent. The endpoint for the agent is exposed over internet through the Azure AI Foundry.
 
 ## Deployment guide
 
@@ -32,25 +34,18 @@ Follow these instructions to deploy this example to your Azure subscription, try
 
 - An [Azure subscription](https://azure.microsoft.com/free/)
 
-  - The subscription must have the following resource providers [registered](https://learn.microsoft.com/azure/azure-resource-manager/management/resource-providers-and-types#register-resource-provider).
+  - The subscription must have all of the resource providers used in this deployment [registered](https://learn.microsoft.com/azure/azure-resource-manager/management/resource-providers-and-types#register-resource-provider).
 
-    - `Microsoft.AlertsManagement`
     - `Microsoft.CognitiveServices`
-    - `Microsoft.ContainerRegistry`
-    - `Microsoft.KeyVault`
     - `Microsoft.Insights`
-    - `Microsoft.MachineLearningServices`
     - `Microsoft.ManagedIdentity`
     - `Microsoft.OperationalInsights`
-    - `Microsoft.PolicyInsights`
     - `Microsoft.Storage`
 
-  - The subscription selected must have the following quota available in the location you'll select to deploy this implementation.
+  - The subscription must have the following quota available in the region you choose.
 
-    - Azure OpenAI: Standard, GPT-4o-mini, 10K TPM
-    - Storage Accounts: 1
-    - Total Cluster Dedicated Regional vCPUs: 4
-    - Standard DASv4 Family Cluster Dedicated vCPUs: 4
+    - App Service Plans: P1v3 (AZ), 3 instances
+    - OpenAI model: GPT-4o model deployment with 50k tokens per minute (TPM) capacity
 
 - Your deployment user must have the following permissions at the subscription scope.
 
@@ -98,7 +93,7 @@ The following steps are required to deploy the infrastructure from the command l
    *There is an optional tracking ID on this deployment. To opt out of its use, add the following parameter to the deployment code below: `-p telemetryOptOut true`.*
 
    ```bash
-   RESOURCE_GROUP=rg-chat-basic-${LOCATION}
+   RESOURCE_GROUP=rg-chat-basic-${BASE_NAME}
    az group create -l $LOCATION -n $RESOURCE_GROUP
 
    PRINCIPAL_ID=$(az ad signed-in-user show --query id -o tsv)
@@ -110,113 +105,98 @@ The following steps are required to deploy the infrastructure from the command l
      -p yourPrincipalId=$PRINCIPAL_ID
    ```
 
-### 2. Deploy a Prompt flow from Azure AI Foundry portal
+### 2. Deploy an agent in the Azure AI Agent service
 
-To test this architecture, you'll be deploying a pre-built Prompt flow. The Prompt flow is "Chat with Wikipedia" which adds a Wikipedia search as grounding data.
+To test this scenario, you'll be deploying an AI agent included in this repository. The agent uses a GPT model combined with a Bing search for grounding data. Deploying an AI agent requires data plane access to Azure AI Foundry. In this architecture, you will interact with the Azure AI Foundry portal and its resources over internet.
 
-1. Open Azure AI Foundry's projects by going to <https://ai.azure.com/allProjects>.
+The AI agent definition would likely be deployed from your application's pipeline running from a build agent or it could be deployed via singleton code in your web application. In this deployment, you'll create the agent from the terminal, which most closely simulates pipeline-based creation.
 
-1. Click on the 'Chat with Wikipedia project' project name. This is the project where you'll deploy your flow.
+1. Generate some variables to set context.
 
-1. Click on **Prompt flow** in the left navigation.
+   *The following variables align with the defaults in this deployment. Update them if you customized anything.*
 
-1. On the **Flows** tab, click **+ Create**.
+   ```bash
+   AI_FOUNDRY_NAME="aif${BASE_NAME}"
+   BING_CONNECTION_NAME="bingaiagent"
+   AI_FOUNDRY_PROJECT_NAME="projchat"
+   BING_CONNECTION_ID="$(az cognitiveservices account show -n $AI_FOUNDRY_NAME -g $RESOURCE_GROUP --query 'id' --out tsv)/projects/${AI_FOUNDRY_PROJECT_NAME}/connections/${BING_CONNECTION_NAME}"
+   MODEL_CONNECTION_NAME="agent-model"
+   AI_FOUNDRY_AGENT_CREATE_URL="https://${AI_FOUNDRY_NAME}.services.ai.azure.com/api/projects/${AI_FOUNDRY_PROJECT_NAME}/assistants?api-version=2025-05-15-preview"
 
-1. Under Explore gallery, find "Chat with Wikipedia" and click **Clone**.
+   echo $BING_CONNECTION_ID
+   echo $MODEL_CONNECTION_NAME
+   echo $AI_FOUNDRY_AGENT_CREATE_URL
+   ```
 
-1. Set the Folder name to `chat_wiki` and click **Clone**.
+1. Deploy the agent.
 
-   This copies a starter Prompt flow template into your Azure Files storage account. This action is performed by the managed identity of the project. After the files are copied, then you're directed to a Prompt flow editor. That editor experience uses your own identity for access to Azure Files.
+   *This step simulates deploying an AI agent through your pipeline.*
 
-1. Connect the `extract_query_from_question` Prompt flow step to your Azure OpenAI model deployment.
+   ```bash
+   # Use the agent definition on disk
+   curl "https://github.com/Azure-Samples/openai-end-to-end-basic/raw/refs/heads/main/agents/chat-with-bing.json"
 
-      - For **Connection**, select 'azureaiservices_aoai' from the dropdown menu. This is your deployed Azure OpenAI instance.
-      - For **deployment_name**, select 'gpt4o' from the dropdown menu. This is the model you've deployed in that Azure OpenAI instance.
-      - For **response_format**, select '{"type":"text"}' from the dropdown menu
+   # Update to match your environment
+   cat agents/chat-with-bing.json | \
+         sed "s#MODEL_CONNECTION_NAME#${MODEL_CONNECTION_NAME}#g" | \
+         sed "s#BING_CONNECTION_ID#${BING_CONNECTION_ID}#g" \
+         > agents/chat-with-bing-output.json
 
-1. Connect the `augmented_chat` Prompt flow step to your Azure OpenAI model deployment.
+   # Deploy the agent
+   az rest -u $AI_FOUNDRY_AGENT_CREATE_URL -m "post" --resource "https://ai.azure.com" -b @agents/chat-with-bing-output.json
+   ```
 
-      - For **Connection**, select the same 'azureaiservices_aoai' from the dropdown menu.
-      - For **deployment_name**, select the same 'gpt4o' from the dropdown menu.
-      - For **response_format**, also select '{"type":"text"}' from the dropdown menu.
+1. Get Agent Id value
 
-1. Click **Save** on the flow.
+   ```bash
+   AGENT_ID=$(az rest -u $AI_FOUNDRY_AGENT_CREATE_URL -m "get" --resource "https://ai.azure.com" --query 'data[0].id' -o tsv)
 
-### 3. Test the Prompt flow from the Azure AI Foundry portal
+   echo $AGENT_ID
+   ````
 
-Here you'll test your flow by invoking it directly from the Azure AI Foundry portal. The flow still requires you to bring compute to execute it from. The compute you'll use when in the portal is the default *Serverless* offering, which is only used for portal-based Prompt flow experiences. The interactions against Azure OpenAI are performed by your identity; the bicep template has already granted your user data plane access.
+### 3. Test the agent from the Azure AI Foundry portal in the playground. *Optional.*
 
-1. Click **Start compute session**.
+Here you'll test your orchestration agent by invoking it directly from the Azure AI Foundry portal's playground experience.
 
-1. :clock8: Wait for that button to change to *Compute session running*. This may take about six minutes.
+*This step testing step is completely optional.*
 
-   *Do not advance until the serverless compute session is running.*
+1. Open the Azure portal to your subscription.
 
-1. Click the enabled **Chat** button on the UI.
+1. Navigate to the Azure AI Foundry project named **projchat** in your resource group and open the Azure AI Foundry portal by clicking the **Go to Azure AI Foundry portal** button.
 
-1. Enter a question that would require grounding data through recent Wikipedia content, such as a notable current event.
+   This will take you directly into the 'Chat project'. Alternatively, you can find all your AI Foundry accounts and projects by going to <https://ai.azure.com> and you do not need to use the Azure portal to access them.
+
+1. Click **Agents** in the side navigation.
+
+1. Select the agent named 'Baseline Chatbot Agent'.
+
+1. Click the **Try in playground** button.
+
+1. Enter a question that would require grounding data through recent internet content, such as a notable recent event or the weather today in your location.
 
 1. A grounded response to your question should appear on the UI.
 
-### 4. Deploy the Prompt flow to an Azure Machine Learning managed online endpoint
+### 4. Publish the chat front-end web app
 
-Here you'll take your tested flow and deploy it to a managed online endpoint.
+Workloads build chat functionality into an application. Those interfaces usually call Azure AI Foundry project endpoint invoking a particular agent. This implementation comes with such an interface. You'll deploy it to Azure App Service using the Azure CLI.
 
-1. Click the **Deploy** button in the UI.
+1. Update the app configuration to use the agent you deployed.
 
-1. Choose **Existing** endpoint and select the one called *ept-chat-BASE_NAME*.
+   ```bash
+   APPSERVICE_NAME=app-$BASE_NAME
 
-1. Set the following Basic settings, and click **Next**.
+   az webapp config appsettings set -g $RESOURCE_GROUP -n $APPSERVICE_NAME --settings AIAgentId=${AGENT_ID}
+   ````
 
-   - **Deployment name**: ept-chat-deployment
-   - **Virtual machine**: Choose a small virtual machine size from which you have quota. 'Standard_D2as_v4' is plenty for this sample.
-   - **Instance count**: 3. *This is the recommended minimum count.*
-   - **Inferencing data collection**: Enabled
+1. Deploy the ChatUI web app
 
-1. Set the following Advanced settings, and click **Next**.
-
-   - **Deployment tags**: You can leave blank.
-   - **Environment**: Use environment of current flow definition.
-   - **Application Insights diagnostics**: Enabled
-
-1. Ensure the Output & connections settings are still set to the same connection name and deployment name as configured in the Prompt flow, and click **Next**.
-
-1. Click the **Create** button.
-
-   There is a notice on the final screen that says:
-
-   > Following connection(s) are using Microsoft Entra ID based authentication. You need to manually grant the endpoint identity access to the related resource of these connection(s).
-   > - azureaiservices_aoai
-
-   This has already been taken care of by your IaC deployment. The managed online endpoint identity already has this permission to Azure OpenAI, so there is no action for you to take.
-
-1. :clock9: Wait for the deployment to finish creating.
-
-   The deployment can take over ten minutes to create. To check on the process, navigate to the deployments screen using **Models + endpoints** the link in the left navigation. Eventually 'ept-chat-deployment' will be on this list and the deployment will be listed with a State of 'Succeeded'. Use the **Refresh** button as needed.
-
-   *Do not advance until this deployment is complete.*
-
-### 5. Test the deployed Prompt flow from the Azure AI Foundry portal
-
-1. Click on the deployment name, 'ept-chat-deployment'.
-
-1. Click on the **Test** tab.
-
-1. Verify the managed online endpoint is working by asking a similar question that you did from the Prompt flow screen.
-
-### 6. Publish the chat front-end web app
-
-Workloads build chat functionality into an application. Those interfaces usually call APIs which in turn call into Prompt flow. This implementation comes with such an interface. You'll deploy it to Azure App Service using its [run from package](https://learn.microsoft.com/azure/app-service/deploy-run-package) capabilities.
-
-```bash
-APPSERVICE_NAME=app-$BASE_NAME
-
-az webapp deploy -g $RESOURCE_GROUP -n $APPSERVICE_NAME --type zip --src-url https://github.com/Azure-Samples/openai-end-to-end-basic/raw/refs/heads/main/website/chatui.zip
-```
+   ```bash
+   az webapp deploy -g $RESOURCE_GROUP -n $APPSERVICE_NAME --type zip --src-url https://github.com/Azure-Samples/openai-end-to-end-basic/raw/refs/heads/main/website/chatui.zip
+   ```
 
 > Sometimes the prior command will fail with a `GatewayTimeout`. If you receive that error, you're safe to simply execute the command again.
 
-## :checkered_flag: Try it out. Test the deployed application
+### 5. Try it out! Test the deployed application that calls into the Azure AI Agent service
 
 After the deployment is complete, you can try the deployed application by navigating to the Web App's URL in a web browser.
 
@@ -226,7 +206,7 @@ You can also execute the following from your workstation. Unfortunately, this co
 az webapp browse -g $RESOURCE_GROUP -n $APPSERVICE_NAME
 ```
 
-Once you're there, ask your solution a question. Like before, you question should ideally involve recent data or events, something that would only be known by the RAG process including context from Wikipedia.
+Once you're there, ask your solution a question. Your question should involve something that would only be known if the RAG process included context from Bing such as recent weather or events.
 
 ## :broom: Clean up resources
 
@@ -239,8 +219,7 @@ Most Azure resources deployed in the prior steps will incur ongoing charges unle
 az group delete -n $RESOURCE_GROUP -y
 
 # Purge the soft delete resources
-az keyvault purge -n kv-${BASE_NAME} -l $LOCATION
-az cognitiveservices account purge -g $RESOURCE_GROUP -l $LOCATION -n ais-${BASE_NAME}
+az cognitiveservices account purge -g $RESOURCE_GROUP -l $LOCATION -n aif${BASE_NAME}
 ```
 
 ## Contributions

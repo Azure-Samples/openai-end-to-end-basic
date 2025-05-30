@@ -20,7 +20,7 @@ Azure AI Foundry hosts Azure AI Agent service as a capability. Azure AI Agent se
 
 Agents can be created via the Azure AI Foundry portal, [Azure AI Agents SDK](https://github.com/Azure/azure-sdk-for-net/tree/main/sdk/ai/Azure.AI.Agents.Persistent), or the [REST API](https://learn.microsoft.com/rest/api/aifoundry/aiagents/). The creation and invocation of agents are a data plane operation.
 
-Ideally agents should be source-controlled and a versioned asset. You then can deploy agents in a coordinated way with the rest of your workload's code. In this deployment guide, you'll create an agent to simulate a deployment pipeline which could have created the agent.
+Ideally agents should be source-controlled and a versioned asset. You then can deploy agents in a coordinated way with the rest of your workload's code. In this deployment guide, you'll create an agent through the REST API to simulate a deployment pipeline which could have created the agent.
 
 ### Invoking the agent from .NET code hosted in an Azure Web App
 
@@ -134,13 +134,13 @@ The AI agent definition would likely be deployed from your application's pipelin
 
    ```bash
    # Use the agent definition on disk
-   curl "https://github.com/Azure-Samples/openai-end-to-end-basic/raw/refs/eads/main/agents/chat-with-bing.json"
+   curl "https://github.com/Azure-Samples/openai-end-to-end-basic/raw/refs/heads/main/agents/chat-with-bing.json"
 
    # Update to match your environment
    cat agents/chat-with-bing.json | \
          sed "s#MODEL_CONNECTION_NAME#${MODEL_CONNECTION_NAME}#g" | \
          sed "s#BING_CONNECTION_ID#${BING_CONNECTION_ID}$#g" \
-         > agents/chat-with-bing.json
+         > agents/chat-with-bing-output.json
 
    # Deploy the agent
    az rest -u $AI_FOUNDRY_AGENT_CREATE_URL -m "post" --resource "https://ai.azure.com" -b chat-with-bing-output.json
@@ -154,15 +154,13 @@ The AI agent definition would likely be deployed from your application's pipelin
    echo $AGENT_ID
    ````
 
-### 3. Test the agent from the Azure AI Foundry portal in the playground. *Optional.*s
+### 3. Test the agent from the Azure AI Foundry portal in the playground. *Optional.*
 
 Here you'll test your orchestration agent by invoking it directly from the Azure AI Foundry portal's playground experience.
 
 *This step testing step is completely optional.*
 
 1. Open the Azure portal to your subscription.
-
-   You'll need to sign in to the Azure portal, and resolve any Entra ID Conditional Access policies on your account, if this is the first time you are connecting through the jump box.
 
 1. Navigate to the Azure AI Foundry project named **projchat** in your resource group and open the Azure AI Foundry portal by clicking the **Go to Azure AI Foundry portal** button.
 

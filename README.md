@@ -139,7 +139,7 @@ The AI agent definition would likely be deployed from your application's pipelin
    # Update to match your environment
    cat agents/chat-with-bing.json | \
          sed "s#MODEL_CONNECTION_NAME#${MODEL_CONNECTION_NAME}#g" | \
-         sed "s#BING_CONNECTION_ID#${BING_CONNECTION_ID}$#g" \
+         sed "s#BING_CONNECTION_ID#${BING_CONNECTION_ID}#g" \
          > agents/chat-with-bing-output.json
 
    # Deploy the agent

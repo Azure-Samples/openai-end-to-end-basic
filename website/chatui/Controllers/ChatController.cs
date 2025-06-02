@@ -48,8 +48,7 @@ public class ChatController(
             messages
                 .Where(m => m.Role == MessageRole.Agent)
                 .SelectMany(m => m.ContentItems.OfType<MessageTextContent>())
-                .Select(c => c.Text)
-                .Last();
+                .Last().Text;
 
         return Ok(new HttpChatResponse(true, fullText));
     }

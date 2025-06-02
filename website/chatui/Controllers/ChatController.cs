@@ -19,8 +19,8 @@ public class ChatController(
     private readonly IOptionsMonitor<ChatApiOptions> _options = options;
     private readonly ILogger<ChatController> _logger = logger;
 
-    [HttpPost]
-    public async Task<IActionResult> Completions([FromBody] string prompt)
+    [HttpPost("{threadId}")]
+    public async Task<IActionResult> Completions([FromRoute] string threadId, [FromBody] string prompt)
     {
         if (string.IsNullOrWhiteSpace(prompt))
             throw new ArgumentException("Prompt cannot be null, empty, or whitespace.", nameof(prompt));
@@ -28,32 +28,37 @@ public class ChatController(
         _logger.LogDebug("Prompt received {Prompt}", prompt);
         var _config = _options.CurrentValue;
 
-        // TODO: Reuse chat context.
-        PersistentAgentThread thread = await _client.Threads.CreateThreadAsync();
-
         PersistentThreadMessage message = await _client.Messages.CreateMessageAsync(
-            thread.Id,
+            threadId,
             MessageRole.User,
             prompt);
 
-        ThreadRun run = await _client.Runs.CreateRunAsync(thread.Id, _config.AIAgentId);
+        ThreadRun run = await _client.Runs.CreateRunAsync(threadId, _config.AIAgentId);
 
         while (run.Status == RunStatus.Queued || run.Status == RunStatus.InProgress || run.Status == RunStatus.RequiresAction)
         {
             await Task.Delay(TimeSpan.FromMilliseconds(500));
-            run = (await _client.Runs.GetRunAsync(thread.Id, run.Id)).Value;
+            run = (await _client.Runs.GetRunAsync(threadId, run.Id)).Value;
         }
 
-        Pageable<PersistentThreadMessage>  messages = _client.Messages.GetMessages(
-            threadId: thread.Id, order: ListSortOrder.Ascending);
+        Pageable<PersistentThreadMessage> messages = _client.Messages.GetMessages(
+            threadId: threadId, order: ListSortOrder.Ascending);
 
-        var fullText = string.Concat(
+        var fullText =
             messages
                 .Where(m => m.Role == MessageRole.Agent)
                 .SelectMany(m => m.ContentItems.OfType<MessageTextContent>())
                 .Select(c => c.Text)
-        );
+                .Last();
 
         return Ok(new HttpChatResponse(true, fullText));
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Threads()
+    {
+        PersistentAgentThread thread = await _client.Threads.CreateThreadAsync();
+
+        return Ok(new { id = thread.Id });
     }
 }

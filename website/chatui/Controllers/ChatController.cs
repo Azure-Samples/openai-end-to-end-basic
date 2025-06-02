@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Options;
 using Azure;
 using Azure.AI.Agents.Persistent;
-using chatui.Models;
 using chatui.Configuration;
 
 namespace chatui.Controllers;
@@ -50,7 +49,7 @@ public class ChatController(
                 .SelectMany(m => m.ContentItems.OfType<MessageTextContent>())
                 .Last().Text;
 
-        return Ok(new HttpChatResponse(true, fullText));
+        return Ok(new { data = fullText });
     }
 
     [HttpPost]

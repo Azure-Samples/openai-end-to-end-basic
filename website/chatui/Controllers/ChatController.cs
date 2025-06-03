@@ -18,6 +18,7 @@ public class ChatController(
     private readonly IOptionsMonitor<ChatApiOptions> _options = options;
     private readonly ILogger<ChatController> _logger = logger;
 
+    // TODO: [security] prevent clients from freely step on, and into any random thread. 
     [HttpPost("{threadId}")]
     public async Task<IActionResult> Completions([FromRoute] string threadId, [FromBody] string prompt)
     {

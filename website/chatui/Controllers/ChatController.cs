@@ -18,7 +18,8 @@ public class ChatController(
     private readonly IOptionsMonitor<ChatApiOptions> _options = options;
     private readonly ILogger<ChatController> _logger = logger;
 
-    // TODO: [security] prevent clients from freely step on, and into any random thread. 
+    // TODO: [security] Do not trust client to provide threadId. Instead map current user to their active threadid in your application's own state store.
+    // Without this security control in place, a user can inject messages into another user's thread.
     [HttpPost("{threadId}")]
     public async Task<IActionResult> Completions([FromRoute] string threadId, [FromBody] string prompt)
     {
@@ -56,6 +57,7 @@ public class ChatController(
     [HttpPost]
     public async Task<IActionResult> Threads()
     {
+        // TODO [performance efficiency] Delay creating a thread until the first user message arrives.
         PersistentAgentThread thread = await _client.Threads.CreateThreadAsync();
 
         return Ok(new { id = thread.Id });

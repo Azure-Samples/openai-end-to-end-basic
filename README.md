@@ -127,11 +127,9 @@ To test this scenario, you'll be deploying an AI agent. The agent uses a GPT mod
 
 1. Then choose the existing connection named 'bingaiagent' and click **Connect** button.
 
-### 3. Test the agent from the Azure AI Foundry portal in the playground. *Optional.*
+### 3. Test the agent from the Azure AI Foundry portal in the playground.
 
 Here you'll test your orchestration agent by invoking it directly from the Azure AI Foundry portal's playground experience.
-
-*This step testing step is completely optional and assumes you followed steps from the Deploy the agent section above*
 
 1. Click the **Try in playground** button.
 

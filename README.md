@@ -125,7 +125,7 @@ To test this scenario, you'll be deploying an AI agent. The agent uses a GPT mod
 
 1. From the popup window select the knowledge type 'Grounding with Bing Search'. 
 
-1. Then choose the existing connection named 'bingaiagent' and click **Connect** button.
+1. Then choose the existing connection named 'bingaiagent' and click the **Connect** button.
 
 ### 3. Test the agent from the Azure AI Foundry portal in the playground.
 

@@ -111,23 +111,6 @@ To test this scenario, you'll be deploying an AI agent included in this reposito
 
 The AI agent definition would likely be deployed from your application's pipeline running from a build agent or it could be deployed via singleton code in your web application. In this deployment, you'll create the agent from the terminal, which most closely simulates pipeline-based creation.
 
-1. Generate some variables to set context.
-
-   *The following variables align with the defaults in this deployment. Update them if you customized anything.*
-
-   ```bash
-   AI_FOUNDRY_NAME="aif${BASE_NAME}"
-   BING_CONNECTION_NAME="bingaiagent"
-   AI_FOUNDRY_PROJECT_NAME="projchat"
-   BING_CONNECTION_ID="$(az cognitiveservices account show -n $AI_FOUNDRY_NAME -g $RESOURCE_GROUP --query 'id' --out tsv)/projects/${AI_FOUNDRY_PROJECT_NAME}/connections/${BING_CONNECTION_NAME}"
-   MODEL_CONNECTION_NAME="agent-model"
-   AI_FOUNDRY_AGENT_CREATE_URL="https://${AI_FOUNDRY_NAME}.services.ai.azure.com/api/projects/${AI_FOUNDRY_PROJECT_NAME}/assistants?api-version=2025-05-15-preview"
-
-   echo $BING_CONNECTION_ID
-   echo $MODEL_CONNECTION_NAME
-   echo $AI_FOUNDRY_AGENT_CREATE_URL
-   ```
-
 1. Deploy the agent.
 
    Here you'll deploy your orchestration agent by creating it directly from the Azure AI Foundry portal's.
@@ -167,6 +150,18 @@ Here you'll test your orchestration agent by invoking it directly from the Azure
 ### 4. Publish the chat front-end web app
 
 Workloads build chat functionality into an application. Those interfaces usually call Azure AI Foundry project endpoint invoking a particular agent. This implementation comes with such an interface. You'll deploy it to Azure App Service using the Azure CLI.
+
+1. Generate some variables to set context.
+
+   *The following variables align with the defaults in this deployment. Update them if you customized anything.*
+
+   ```bash
+   AI_FOUNDRY_NAME="aif${BASE_NAME}"
+   AI_FOUNDRY_PROJECT_NAME="projchat"
+   AI_FOUNDRY_AGENT_CREATE_URL="https://${AI_FOUNDRY_NAME}.services.ai.azure.com/api/projects/${AI_FOUNDRY_PROJECT_NAME}/assistants?api-version=2025-05-15-preview"
+
+   echo $AI_FOUNDRY_AGENT_CREATE_URL
+   ```
 
 1. Get Agent Id value.
 

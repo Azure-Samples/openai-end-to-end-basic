@@ -134,16 +134,16 @@ The AI agent definition would likely be deployed from your application's pipelin
 
    ```bash
    # Use the agent definition on disk
-   curl "https://github.com/Azure-Samples/openai-end-to-end-basic/raw/refs/heads/main/agents/chat-with-bing.json"
+   wget "https://github.com/Azure-Samples/openai-end-to-end-basic/raw/refs/heads/main/agents/chat-with-bing.json"
 
    # Update to match your environment
-   cat agents/chat-with-bing.json | \
+   cat chat-with-bing.json | \
          sed "s#MODEL_CONNECTION_NAME#${MODEL_CONNECTION_NAME}#g" | \
          sed "s#BING_CONNECTION_ID#${BING_CONNECTION_ID}#g" \
-         > agents/chat-with-bing-output.json
+         > chat-with-bing-output.json
 
    # Deploy the agent
-   az rest -u $AI_FOUNDRY_AGENT_CREATE_URL -m "post" --resource "https://ai.azure.com" -b @agents/chat-with-bing-output.json
+   az rest -u $AI_FOUNDRY_AGENT_CREATE_URL -m "post" --resource "https://ai.azure.com" -b @chat-with-bing-output.json
    ```
 
 1. Get Agent Id value

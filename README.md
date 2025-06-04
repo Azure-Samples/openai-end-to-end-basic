@@ -130,45 +130,33 @@ The AI agent definition would likely be deployed from your application's pipelin
 
 1. Deploy the agent.
 
-   *This step simulates deploying an AI agent through your pipeline.*
+   Here you'll deploy your orchestration agent by creating it directly from the Azure AI Foundry portal's.
 
-   ```bash
-   # Use the agent definition on disk
-   wget "https://github.com/Azure-Samples/openai-end-to-end-basic/raw/refs/heads/main/agents/chat-with-bing.json"
+   1. In your browser of preference, open the Azure portal to your subscription.
 
-   # Update to match your environment
-   cat chat-with-bing.json | \
-         sed "s#MODEL_CONNECTION_NAME#${MODEL_CONNECTION_NAME}#g" | \
-         sed "s#BING_CONNECTION_ID#${BING_CONNECTION_ID}#g" \
-         > chat-with-bing-output.json
+   1. Sign in to the Azure portal
 
-   # Deploy the agent
-   az rest -u $AI_FOUNDRY_AGENT_CREATE_URL -m "post" --resource "https://ai.azure.com" -b @chat-with-bing-output.json
-   ```
+   1. Navigate to the Azure AI Foundry project named **projchat** in your resource group and open the Azure AI Foundry portal by clicking the Go to Azure AI Foundry portal button.
 
-1. Get Agent Id value
+      This will take you directly into the 'Chat project'. Alternatively, you can find all your AI Foundry accounts and projects by going to https://ai.azure.com and you do not need to use the Azure portal to access them.
 
-   ```bash
-   AGENT_ID=$(az rest -u $AI_FOUNDRY_AGENT_CREATE_URL -m "get" --resource "https://ai.azure.com" --query 'data[0].id' -o tsv)
+   1. Click Agents in the side navigation.
 
-   echo $AGENT_ID
-   ````
+   1. Click **+ New agent** button.
+
+   1. From the **Setup** panel, change the Agent name to 'Baseline Chatbot Agent'.
+
+   1. Scroll down and click **+ Add** button in the Knowledge section.
+
+   1. From the popup window select the knowledge type 'Grounding with Bing Search'. 
+
+   1. Then choose the existing connection named 'bingaiagent' and click **Connect** button.
 
 ### 3. Test the agent from the Azure AI Foundry portal in the playground. *Optional.*
 
 Here you'll test your orchestration agent by invoking it directly from the Azure AI Foundry portal's playground experience.
 
-*This step testing step is completely optional.*
-
-1. Open the Azure portal to your subscription.
-
-1. Navigate to the Azure AI Foundry project named **projchat** in your resource group and open the Azure AI Foundry portal by clicking the **Go to Azure AI Foundry portal** button.
-
-   This will take you directly into the 'Chat project'. Alternatively, you can find all your AI Foundry accounts and projects by going to <https://ai.azure.com> and you do not need to use the Azure portal to access them.
-
-1. Click **Agents** in the side navigation.
-
-1. Select the agent named 'Baseline Chatbot Agent'.
+*This step testing step is completely optional and assumes you followed steps from the Deploy the agent section above*
 
 1. Click the **Try in playground** button.
 
@@ -179,6 +167,14 @@ Here you'll test your orchestration agent by invoking it directly from the Azure
 ### 4. Publish the chat front-end web app
 
 Workloads build chat functionality into an application. Those interfaces usually call Azure AI Foundry project endpoint invoking a particular agent. This implementation comes with such an interface. You'll deploy it to Azure App Service using the Azure CLI.
+
+1. Get Agent Id value.
+
+   ```bash
+   AGENT_ID=$(az rest -u $AI_FOUNDRY_AGENT_CREATE_URL -m "get" --resource "https://ai.azure.com" --query 'data[0].id' -o tsv)
+
+   echo $AGENT_ID
+   ````
 
 1. Update the app configuration to use the agent you deployed.
 

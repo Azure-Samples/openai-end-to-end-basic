@@ -121,7 +121,7 @@ To test this scenario, you'll be deploying an AI agent. The agent uses a GPT mod
 
 1. From the Setup panel, change the Agent name to 'Baseline Chatbot Agent'.
 
-1. Scroll down and click **+ Add** button in the Knowledge section.
+1. Click **+ Add** button in the Knowledge section.
 
 1. From the popup window select the knowledge type 'Grounding with Bing Search'. 
 

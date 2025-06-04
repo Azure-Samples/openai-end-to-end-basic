@@ -107,33 +107,27 @@ The following steps are required to deploy the infrastructure from the command l
 
 ### 2. Deploy an agent in the Azure AI Agent service
 
-To test this scenario, you'll be deploying an AI agent included in this repository. The agent uses a GPT model combined with a Bing search for grounding data. Deploying an AI agent requires data plane access to Azure AI Foundry. In this architecture, you will interact with the Azure AI Foundry portal and its resources over internet.
+To test this scenario, you'll be deploying an AI agent. The agent uses a GPT model combined with a Bing search for grounding data. Deploying an AI agent requires data plane access to Azure AI Foundry. In this architecture, you will interact with the Azure AI Foundry portal and its resources over internet.
 
-The AI agent definition would likely be deployed from your application's pipeline running from a build agent or it could be deployed via singleton code in your web application. In this deployment, you'll create the agent from the terminal, which most closely simulates pipeline-based creation.
+1. In your browser of preference, open the Azure portal to your subscription.
 
-1. Deploy the agent.
+1. Sign in to the Azure portal
 
-   Here you'll deploy your orchestration agent by creating it directly from the Azure AI Foundry portal's.
+1. Navigate to the Azure AI Foundry project named **projchat** in your resource group and open the Azure AI Foundry portal by clicking the Go to Azure AI Foundry portal button.
 
-   1. In your browser of preference, open the Azure portal to your subscription.
+   This will take you directly into the 'Chat project'. Alternatively, you can find all your AI Foundry accounts and projects by going to https://ai.azure.com and you do not need to use the Azure portal to access them.
 
-   1. Sign in to the Azure portal
+1. Click Agents in the side navigation.
 
-   1. Navigate to the Azure AI Foundry project named **projchat** in your resource group and open the Azure AI Foundry portal by clicking the Go to Azure AI Foundry portal button.
+1. Click **+ New agent** button.
 
-      This will take you directly into the 'Chat project'. Alternatively, you can find all your AI Foundry accounts and projects by going to https://ai.azure.com and you do not need to use the Azure portal to access them.
+1. From the **Setup** panel, change the Agent name to 'Baseline Chatbot Agent'.
 
-   1. Click Agents in the side navigation.
+1. Scroll down and click **+ Add** button in the Knowledge section.
 
-   1. Click **+ New agent** button.
+1. From the popup window select the knowledge type 'Grounding with Bing Search'. 
 
-   1. From the **Setup** panel, change the Agent name to 'Baseline Chatbot Agent'.
-
-   1. Scroll down and click **+ Add** button in the Knowledge section.
-
-   1. From the popup window select the knowledge type 'Grounding with Bing Search'. 
-
-   1. Then choose the existing connection named 'bingaiagent' and click **Connect** button.
+1. Then choose the existing connection named 'bingaiagent' and click **Connect** button.
 
 ### 3. Test the agent from the Azure AI Foundry portal in the playground. *Optional.*
 

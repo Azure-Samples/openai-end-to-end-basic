@@ -113,7 +113,7 @@ To test this scenario, you'll be deploying an AI agent. The agent uses a GPT mod
 
 1. Navigate to the Azure AI Foundry project named **projchat** in your resource group and open the Azure AI Foundry portal by clicking the Go to **Azure AI Foundry portal** button.
 
-   This will take you directly into the 'Chat project'. Alternatively, you can find all your AI Foundry accounts and projects by going to https://ai.azure.com and you do not need to use the Azure portal to access them.
+   This will take you directly into the 'Chat project'. Alternatively, you can find all your AI Foundry accounts and projects by going to <https://ai.azure.com> and you do not need to use the Azure portal to access them.
 
 1. Click **Agents** in the side navigation.
 

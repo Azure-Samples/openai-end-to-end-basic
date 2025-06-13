@@ -54,13 +54,13 @@ module deployAzureAIFoundry 'ai-foundry.bicep' = {
   }
 }
 
-@description('Deploy the Bing account for Internet grounding data to be used by agents in the Azure AI Foundry Agent service.')
+@description('Deploy the Bing account for Internet grounding data to be used by agents in the Azure AI Foundry Agent Service.')
 module deployBingAccount 'bing-grounding.bicep' = {
   scope: resourceGroup()
   name: 'bingAccountDeploy'
 }
 
-@description('Deploy the Azure AI Foundry project into the AI Foundry account. This is the project is the home of the Azure AI Foundry Agent service.')
+@description('Deploy the Azure AI Foundry project into the AI Foundry account. This is the project is the home of the Foundry Agent Service.')
 module deployAzureAiFoundryProject 'ai-foundry-project.bicep' = {
   scope: resourceGroup()
   name: 'aiFoundryProjectDeploy'
@@ -85,7 +85,7 @@ module deployApplicationInsights 'application-insights.bicep' = {
   }
 }
 
-@description('Deploy the web app for the front end demo UI. The web application will call into the Azure AI Foundry Agent service.')
+@description('Deploy the web app for the front end demo UI. The web application will call into the Azure AI Foundry Agent Service.')
 module deployWebApp 'web-app.bicep' = {
   scope: resourceGroup()
   name: 'webAppDeploy'

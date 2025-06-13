@@ -14,7 +14,7 @@ The implementation covers the following scenarios:
 
 ### Setting up Azure AI Foundry to host agents
 
-Azure AI Foundry hosts Azure AI Foundry Agent service as a capability. Azure AI Foundry Agent service's REST APIs are exposed as a AI Foundry internet facing endpoing. This architecture deploys the Azure AI Foundry Agent service your own Azure subscription.
+Azure AI Foundry hosts Azure AI Foundry Agent service as a capability. Foundry Agent Service's REST APIs are exposed as an internet facing endpoint.
 
 ### Deploying an agent into Azure AI Foundry Agent service
 

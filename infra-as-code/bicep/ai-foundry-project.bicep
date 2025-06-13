@@ -8,7 +8,7 @@ param location string = resourceGroup().location
 @minLength(2)
 param existingAiFoundryName string
 
-@description('The existing Bing grounding data account that is available to Azure AI Agent agents in this project.')
+@description('The existing Bing grounding data account that is available to Azure AI Foundry Agent agents in this project.')
 @minLength(1)
 param existingBingAccountName string
 
@@ -40,7 +40,7 @@ resource aiFoundry 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' exi
       type: 'SystemAssigned'
     }
     properties: {
-      description: 'Chat using internet data in your Azure AI Agent.'
+      description: 'Chat using internet data in your Azure AI Foundry Agent.'
       displayName: 'Chat with Internet Data'
     }
 
@@ -62,7 +62,7 @@ resource aiFoundry 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' exi
         }
       }
     }
-    
+
     @description('Create project connection to Bing grounding data. Useful for future agents that get created.')
     resource bingGroundingConnection 'connections' = {
       name: replace(existingBingAccountName, '-', '')

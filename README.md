@@ -16,6 +16,21 @@ The implementation covers the following scenarios:
 
 Azure AI Foundry hosts Azure AI Foundry Agent service as a capability. Foundry Agent Service's REST APIs are exposed as an internet facing endpoint.
 
+![Diagram that shows a basic end-to-end chat architecture.](docs/media/openai-end-to-end-basic.svg)
+
+*Download a [Visio file](docs/media/openai-end-to-end-basic.vsdx) of this architecture.*
+
+#### Workflow
+
+The following workflow corresponds to the previous diagram:
+
+1. An application user interacts with a web application that contains chat functionality. They issue an HTTPS request to the App Service default domain on azurewebsites.net. This domain automatically points to the App Service built-in public IP address. The Transport Layer Security connection is established from the client directly to App Service. Azure fully manages the certificate.
+1. The App Service feature called Easy Auth ensures that the user who accesses the website is authenticated via Microsoft Entra ID.
+1. The application code deployed to App Service handles the request and renders a chat UI for the application user. The chat UI code connects to APIs that are also hosted in that same App Service instance. The API code connects to an Azure AI agent in Azure AI Foundry by using the Azure AI Persistent Agents SDK.
+1. Azure AI Foundry Agent Service connects to Azure AI Search to fetch grounding data for the query. The grounding data is added to the prompt that's sent to the Azure OpenAI model in the next step.
+1. Foundry Agent Service connects to an Azure OpenAI model that's deployed in Azure AI Foundry and sends the prompt that includes the relevant grounding data and chat context.
+1. Application Insights logs information about the original request to App Service and the call agent interactions.
+
 ### Deploying an agent into Azure AI Foundry Agent service
 
 Agents can be created via the Azure AI Foundry portal, [Azure AI Persistent Agents client library](https://github.com/Azure/azure-sdk-for-net/tree/main/sdk/ai/Azure.AI.Agents.Persistent), or the [REST API](https://learn.microsoft.com/rest/api/aifoundry/aiagents/). The creation and invocation of agents are a data plane operation.
